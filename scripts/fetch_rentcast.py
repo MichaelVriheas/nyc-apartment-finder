@@ -12,16 +12,22 @@ import urllib.error
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from scripts.unit_filter import room_rental_reason
+from scripts.areas import classify_area
 
 LEDGER = Path(".rentcast-budget.json")
 OUTPUT = Path("site/data/rentcast.json")
 BUDGET = 20  # At most 20 attempted calls in ANY rolling 31-day window.
-CALLS_PER_RUN = 1
 MIN_RENT = 2250
 MAX_RENT = 3000
+# Two overlapping targeted circles instead of one 3.7-mile search capped at 500.
+# Together their radii cover the selected NTA polygons (but not necessarily
+# all matches if either query still reaches the 500-result response cap).
 SEARCHES = [
-    ("Upper Manhattan", {"latitude": "40.8215", "longitude": "-73.9562", "radius": "3.7"}),
+    ("Columbia / southern search", {"latitude": "40.8000", "longitude": "-73.9635", "radius": "1.85"}),
+    ("Harlem / northern search", {"latitude": "40.8435", "longitude": "-73.9435", "radius": "2.15"}),
 ]
+CALLS_PER_RUN = len(SEARCHES)
+SEARCH_METHOD = "2020-nta-two-targeted-circles-v1"
 ENDPOINT = "https://api.rentcast.io/v1/listings/rental/long-term"
 
 def now():
@@ -78,32 +84,7 @@ def maybe_num(v):
         return None
 
 def classify(row, search):
-    state = str(row.get("state") or "").upper()
-    city = str(row.get("city") or "").lower()
-    if state != "NY":
-        return None
-    lat = maybe_num(row.get("latitude"))
-    lon = maybe_num(row.get("longitude"))
-    if lat is None or lon is None:
-        return None
-    # Approximate research search regions, NOT official neighborhood polygons.
-    if 40.787 <= lat < 40.799 and -73.984 < lon < -73.957:
-        return "Northern Upper West Side"
-    if 40.799 <= lat < 40.807 and -73.982 < lon < -73.952:
-        return "Manhattan Valley"
-    if 40.807 <= lat < 40.818 and -73.979 < lon < -73.954:
-        return "Morningside Heights"
-    if 40.816 <= lat < 40.829 and -73.976 < lon < -73.950:
-        return "Manhattanville"
-    if 40.828 <= lat < 40.843 and -73.970 < lon < -73.949:
-        return "Hamilton Heights"
-    if 40.806 <= lat < 40.822 and -73.954 <= lon < -73.927:
-        return "South Harlem"
-    if 40.821 <= lat < 40.839 and -73.950 <= lon < -73.927:
-        return "Central Harlem"
-    if 40.838 <= lat <= 40.865 and -73.964 < lon < -73.916:
-        return "Washington Heights"
-    return None
+    return classify_area(row.get("latitude"), row.get("longitude"), row.get("state"))
 
 def retrieve(query, secret):
     params = dict(query)
@@ -138,7 +119,7 @@ def fetch():
         except urllib.error.HTTPError as e:
             # Never print headers, secret, request object, or API response body.
             raise RuntimeError(f"RentCast request failed with HTTP {e.code} for {label}") from None
-        counts[label] = {"returned": len(rows), "matched": 0, "excluded_room_rentals": 0}
+        counts[label] = {"returned": len(rows), "matched": 0, "excluded_room_rentals": 0, "at_response_limit": len(rows) >= 500, "duplicate_ids": 0}
         for row in rows:
             area = classify(row, label)
             rent = maybe_num(row.get("price"))
@@ -154,6 +135,8 @@ def fetch():
             if not identifier:
                 continue
             counts[label]["matched"] += 1
+            if identifier in all_rows:
+                counts[label]["duplicate_ids"] += 1
             addr = str(row.get("formattedAddress") or row.get("addressLine1") or "Address not provided")
             # RentCast does not promise a deep link to the original listing.
             # Provide a clearly labeled address-search link instead.
@@ -161,6 +144,7 @@ def fetch():
             all_rows[identifier] = {
                 "id": "rentcast-" + identifier, "source_kind": "rentcast",
                 "area": area, "area_estimated": True,
+                "boundary_method": "NYC DCP 2020 NTA (sub-neighborhoods approximate)",
                 "address": addr, "unit": "",
                 "property_type": str(row.get("propertyType") or ""),
                 "unit_scope": "unverified_entire_unit",
@@ -186,7 +170,8 @@ def fetch():
             raise RuntimeError("Could not read prior RentCast snapshot; stopping rather than misleading users") from exc
         if not isinstance(prev_payload, dict) or not isinstance(prev_payload.get("listings"), list):
             raise RuntimeError("Prior RentCast snapshot invalid; stopping rather than misleading users")
-    prev_checked_at = prev_payload.get("checked_at_utc") if prev_payload else None
+    method_changed = bool(prev_payload) and prev_payload.get("search_method") != SEARCH_METHOD
+    prev_checked_at = prev_payload.get("checked_at_utc") if prev_payload and not method_changed else None
     previous = {
         str(item["id"]): item
         for item in (prev_payload.get("listings", []) if prev_payload else [])
@@ -222,9 +207,10 @@ def fetch():
                     increase_count += 1
             else:
                 item["change_status"] = "unchanged"
-    not_found_count = len(set(previous) - {"rentcast-" + identifier for identifier in all_rows})
+    not_found_count = len(set(previous) - {"rentcast-" + identifier for identifier in all_rows}) if prev_checked_at else 0
     comparison = {
         "baseline": not bool(prev_checked_at),
+        "methodology_changed": method_changed,
         "previous_checked_at_utc": prev_checked_at,
         "current_checked_at_utc": checked_at,
         "previous_listing_count": len(previous),
@@ -232,14 +218,17 @@ def fetch():
         "price_drop_count": drop_count,
         "price_increase_count": increase_count,
         "not_found_count": not_found_count,
-        "coverage_warning": "Newly seen means absent from the previous saved search, not newly advertised. Not found means absent from this sampled query, not rented or inactive. The API may truncate the first 500 results."
+        "coverage_warning": "Newly seen means absent from the previous sampled search, not newly advertised. Not found means absent from the sample, not rented. A search query can still return a maximum of 500 records."
     }
     output = {
         "source": "RentCast rental listings API",
         "status": "provider_reported_active_at_check",
         "checked_at_utc": checked_at,
-        "warning": "Provider-reported active status is not a guarantee of availability. Verify independently. Neighborhood classifications are approximate.",
+        "warning": "Provider-reported active status does not guarantee availability. Neighborhood assignments use 2020 NYC NTA statistical polygons with approximate sub-area labels; results are capped at 500 per query.",
         "query_counts": counts,
+        "search_method": SEARCH_METHOD,
+        "geography_source": "NYC Department of City Planning 2020 NTA polygons; narrower neighborhood labels are approximated",
+        "search_response_limit_hit": any(c["at_response_limit"] for c in counts.values()),
         "rent_min": MIN_RENT,
         "rent_max": MAX_RENT,
         "comparison": comparison,
