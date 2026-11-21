@@ -85,6 +85,9 @@
     .beds-badge{font-size:11px;color:#315272;font-weight:750;background:#eaf2f9;border-radius:7px;padding:4px 9px;white-space:nowrap}
     .card-address{font-weight:730;color:#2c3e56;line-height:1.32;margin:10px 0 7px;min-height:36px;overflow-wrap:anywhere}.area-tag{display:inline-block;font-weight:700;font-size:11px;color:#286178;background:#e8f2f7;padding:3px 9px;border-radius:100px;max-width:100%;overflow-wrap:anywhere}
     .card-facts{display:flex;flex-wrap:wrap;gap:9px;margin-top:10px;color:#52657a;font-size:11px;font-weight:650}.card-facts span{white-space:nowrap}.card-facts .no-fee{background:#def5ee;color:#087368;padding:2px 6px;border-radius:6px}
+    .card-facts .photo-ref{background:#e9f0fa;color:#345a83;padding:2px 6px;border-radius:6px}
+    .photo-source-link{position:absolute;left:11px;bottom:10px;z-index:3;display:inline-flex;align-items:center;gap:4px;max-width:calc(100% - 24px);padding:6px 9px;background:#fff;color:#123b5e;border-radius:8px;font-size:11px;font-weight:800;text-decoration:none;box-shadow:0 2px 10px #162b4340}
+    .photo-source-link:hover,.photo-source-link:focus-visible{background:#e8f8f5;text-decoration:underline}
     .card-foot{border-top:1px solid #e9eef3;padding-top:11px;margin-top:13px;display:flex;justify-content:space-between;gap:10px;align-items:center}.date-info{font-size:10px;color:#8190a2;max-width:58%;line-height:1.35}.card-links{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
     .map-jump{border:0;background:transparent;color:var(--teal-dark);font-size:11px;font-weight:750;padding:3px}.map-jump:hover{text-decoration:underline}
     .card-link{display:inline-flex;align-items:center;gap:3px;color:var(--teal-dark);font-size:11px;font-weight:800;text-decoration:none;white-space:nowrap}.card-link:hover{text-decoration:underline}
@@ -196,14 +199,25 @@
       badges.append(text("span","source-badge",x.source_kind==="rentcast"?"RentCast":"FirstMover"));
       visual.append(badges);
       const save=text("button","save-btn"+(favorites.has(String(x.id))?" saved":""),favorites.has(String(x.id))?"♥":"♡");save.type="button";save.setAttribute("aria-label",favorites.has(String(x.id))?"Remove from favorites":"Save to favorites");save.setAttribute("aria-pressed",String(favorites.has(String(x.id))));save.addEventListener("click",()=>saveFavorite(x.id));visual.append(save);
-      visual.append(text("div","visual-note","Illustration · photo unavailable"));card.append(visual);
+      const originalListing=safeUrl(x.url);
+      const photoRefs=x.source_kind==="historical"?(Array.isArray(x.photo_ids)?x.photo_ids.length:0):0;
+      const photoAdvertised=x.source_kind==="historical"&&(photoRefs>0||Boolean(x.lead_photo_id));
+      // FirstMover photo identifiers are metadata only. No Zillow/StreetEasy
+      // images are embedded or downloaded without an explicit display license.
+      if(photoAdvertised&&originalListing){
+        const photoLink=text("a","photo-source-link","See photos at original listing ↗");
+        photoLink.href=originalListing;photoLink.target="_blank";photoLink.rel="noopener noreferrer";
+        photoLink.title="Photos were referenced when originally advertised; the listing or images may no longer be available";
+        visual.append(photoLink);
+      }
+      visual.append(text("div","visual-note",photoAdvertised?"Illustration · not unit photo":"Illustration · photo unavailable"));card.append(visual);
       const body=text("div","card-body","");const priceRow=text("div","price-row","");
       const price=text("div","rent-price",money(x.rent));price.append(text("small",""," / month"));priceRow.append(price,text("span","beds-badge",Number(x.bedrooms)===0?"Studio":"1 bedroom"));body.append(priceRow);
       body.append(text("div","card-address",(x.address||"Address not provided")+(x.unit?" · Unit "+x.unit:"")),text("span","area-tag",x.area||"Area not listed"));
-      const facts=text("div","card-facts","");if(x.bathrooms!==null&&x.bathrooms!==undefined&&x.bathrooms!=="")facts.append(text("span","",Number(x.bathrooms)+" bath"+(Number(x.bathrooms)===1?"":"s")));if(Number(x.sqft)>0)facts.append(text("span","",Math.round(Number(x.sqft)).toLocaleString()+" sq ft"));if(feeReported(x))facts.append(text("span","no-fee","✓ No fee reported"));body.append(facts);
+      const facts=text("div","card-facts","");if(x.bathrooms!==null&&x.bathrooms!==undefined&&x.bathrooms!=="")facts.append(text("span","",Number(x.bathrooms)+" bath"+(Number(x.bathrooms)===1?"":"s")));if(Number(x.sqft)>0)facts.append(text("span","",Math.round(Number(x.sqft)).toLocaleString()+" sq ft"));if(feeReported(x))facts.append(text("span","no-fee","✓ No fee reported"));if(photoAdvertised)facts.append(text("span","photo-ref","Photo references at posting"));body.append(facts);
       const foot=text("div","card-foot","");foot.append(text("span","date-info",x.source_kind==="rentcast"?"Provider last saw: "+dateOnly(x.last_seen):"First advertised: "+dateOnly(x.listed_at)));
       const links=text("div","card-links","");const loc=Number(x.latitude),lng=Number(x.longitude);if(Number.isFinite(loc)&&Number.isFinite(lng)&&x.latitude!=null&&x.longitude!=null){const jump=text("button","map-jump","Map");jump.type="button";jump.setAttribute("aria-label","Show "+(x.address||"this apartment")+" on map");jump.addEventListener("click",()=>showMarker(x.id));links.append(jump);}
-      const url=safeUrl(x.url);if(url){const a=text("a","card-link",x.source_kind==="rentcast"?"Search address":"Open listing");a.href=url;a.target="_blank";a.rel="noopener noreferrer";a.append(svg("external"));a.setAttribute("aria-label",x.source_kind==="rentcast"?"Search the web for this address":"Open original listing in a new tab");links.append(a);}else links.append(text("span","date-info","Link unavailable"));foot.append(links);body.append(foot);card.append(body);return card;
+      const url=originalListing;if(url){const a=text("a","card-link",x.source_kind==="rentcast"?"Search address":photoAdvertised?"Listing & photos":"Open listing");a.href=url;a.target="_blank";a.rel="noopener noreferrer";a.append(svg("external"));a.setAttribute("aria-label",x.source_kind==="rentcast"?"Search the web for this address":"Open original listing in a new tab");links.append(a);}else links.append(text("span","date-info","Link unavailable"));foot.append(links);body.append(foot);card.append(body);return card;
     }
     function refreshPins(list){if(!map||!markers)return;markers.clearLayers();markerIndex.clear();const coords=[];
       for(const x of list){const lat=Number(x.latitude),lng=Number(x.longitude);if(x.latitude==null||x.longitude==null||!Number.isFinite(lat)||!Number.isFinite(lng)||lat<40||lat>42||lng< -75||lng> -72)continue;
