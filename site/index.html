@@ -30,11 +30,8 @@
     .header-nav{display:flex;align-items:center;gap:8px;flex-shrink:0}
     .nav-link{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:11px;text-decoration:none;font-weight:650;color:#334962;border:1px solid transparent;background:transparent;white-space:nowrap}
     .nav-link:hover{background:#f3f7f9}.nav-link.active{background:var(--navy);color:#fff}
-    .nav-link svg,.filter-heading svg,.chip svg,.icon-button svg,.action-btn svg,.card-link svg,.view-button svg{width:17px;height:17px;flex:0 0 auto}
+    .nav-link svg,.filter-heading svg,.icon-button svg,.action-btn svg,.card-link svg,.view-button svg{width:17px;height:17px;flex:0 0 auto}
     .fav-bubble{background:#d8f2ef;color:#0f666d;padding:0 6px;border-radius:20px;font-size:11px;min-width:18px;text-align:center}
-    .overview{display:flex;flex-wrap:wrap;align-items:center;gap:11px;padding:15px 0 19px}
-    .chip{display:flex;gap:9px;align-items:center;background:#eff7f6;border:1px solid #dcebea;border-radius:11px;padding:10px 15px;color:var(--navy);font-size:13px;white-space:nowrap}
-    .chip svg{color:var(--teal)}.chip b{font-weight:770}
     .page-main{padding:22px 0 34px}
     .filter-panel{background:var(--paper);border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow);padding:17px 18px 16px}
     .filter-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
@@ -142,8 +139,8 @@
     @media(min-width:1600px){.card-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.listing-visual{height:165px}}
     @media(max-width:1350px){.filter-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.action-btn{align-self:end}.workspace{grid-template-columns:minmax(290px,39%) minmax(0,1fr)}}
     @media(max-width:1050px){.card-grid{grid-template-columns:1fr}.workspace{grid-template-columns:minmax(280px,42%) minmax(0,1fr)}.header-skyline{display:none}}
-    @media(max-width:760px){.container{width:min(100% - 24px,650px)}.masthead{min-height:90px}.brand-mark{width:45px;height:45px}.brand-mark svg{width:27px;height:27px}.brand h1{font-size:24px}.brand p{font-size:11px}.header-nav .nav-link:not(.active){padding:9px}.header-nav .nav-link:not(.active) .nav-label{display:none}.nav-link{padding:9px}.nav-link .fav-bubble{display:none}.overview{padding:11px 0 15px;gap:8px}.chip{padding:8px 11px;font-size:11px}.page-main{padding-top:13px}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.filter-panel{padding:14px}.filter-meta{display:none}.workspace{grid-template-columns:1fr}.map-panel{position:static}.map-panel #map{min-height:320px;height:360px}.card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.listing-visual{height:135px}}
-    @media(max-width:560px){.masthead{gap:10px}.brand h1{font-size:21px}.brand-mark{width:40px;height:40px}.brand{gap:10px}.header-nav .nav-link.active{padding:8px 9px}.header-nav .nav-link .nav-label{display:none}.chip{width:calc(50% - 4px);justify-content:flex-start}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-grid .field:first-child{grid-column:1/-1}.filter-grid .action-btn{grid-column:2}.under-filter{align-items:flex-start}.card-grid{grid-template-columns:1fr}.listing-visual{height:160px}.tab{padding:8px 10px;font-size:12px}.view-button{font-size:0;gap:0}.view-button svg{width:17px;height:17px}.results-title{font-size:18px}.results-toolbar{padding:12px}.map-panel #map{height:310px;min-height:310px}}
+    @media(max-width:760px){.container{width:min(100% - 24px,650px)}.masthead{min-height:90px}.brand-mark{width:45px;height:45px}.brand-mark svg{width:27px;height:27px}.brand h1{font-size:24px}.brand p{font-size:11px}.header-nav .nav-link:not(.active){padding:9px}.header-nav .nav-link:not(.active) .nav-label{display:none}.nav-link{padding:9px}.nav-link .fav-bubble{display:none}.page-main{padding-top:13px}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.filter-panel{padding:14px}.filter-meta{display:none}.workspace{grid-template-columns:1fr}.map-panel{position:static}.map-panel #map{min-height:320px;height:360px}.card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.listing-visual{height:135px}}
+    @media(max-width:560px){.masthead{gap:10px}.brand h1{font-size:21px}.brand-mark{width:40px;height:40px}.brand{gap:10px}.header-nav .nav-link.active{padding:8px 9px}.header-nav .nav-link .nav-label{display:none}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-grid .field:first-child{grid-column:1/-1}.filter-grid .action-btn{grid-column:2}.under-filter{align-items:flex-start}.card-grid{grid-template-columns:1fr}.listing-visual{height:160px}.tab{padding:8px 10px;font-size:12px}.view-button{font-size:0;gap:0}.view-button svg{width:17px;height:17px}.results-title{font-size:18px}.results-toolbar{padding:12px}.map-panel #map{height:310px;min-height:310px}}
 
     /* Side-by-side comparison: self-contained, responsive, no extra API calls */
     .compare-tip{font-size:12px;color:#677e90;margin:0 0 11px;padding:0 2px;line-height:1.5}
@@ -220,12 +217,6 @@
       <div class="masthead">
         <div class="brand"><span class="brand-mark"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M3 32h30M7 32V16h7v16m6 0V8h8v24M14 32V23h6v9M24 8V3M9 20h3m-3 5h3m12-12h2m-2 6h2m-2 6h2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><h1>NYC Apartment Finder</h1><p>Rental research near Columbia University</p></div></div>
         <nav class="header-nav" aria-label="Main navigation"><a href="#filters" class="nav-link active" aria-current="page"><svg><use href="#i-search"/></svg><span class="nav-label">Marketplace</span></a><a href="./market-insights.html" class="nav-link insights-nav"><svg><use href="#i-layers"/></svg><span class="nav-label">Market Insights</span></a><a href="#results" class="nav-link" id="header-favorites"><svg><use href="#i-heart"/></svg><span class="nav-label">Saved favorites</span><span class="fav-bubble" id="fav-total">0</span></a></nav>
-      </div>
-      <div class="overview" aria-label="Search preferences">
-        <div class="chip"><svg><use href="#i-wallet"/></svg> Monthly base rent <b>$2,250–$3,000</b></div>
-        <div class="chip"><svg><use href="#i-bed"/></svg> Studio + <b>1 bedroom</b></div>
-        <div class="chip"><svg><use href="#i-pin"/></svg> <b>8</b> search areas · south of GW Bridge</div>
-        <div class="chip"><svg><use href="#i-layers"/></svg> <b>RentCast + FirstMover</b></div>
       </div>
     </div>
   </header>
