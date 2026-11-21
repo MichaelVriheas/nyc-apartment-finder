@@ -46,18 +46,6 @@
     .field select{padding-right:20px}.fee-field{padding-bottom:4px}.fee-check{min-height:38px;display:flex;gap:8px;align-items:center;white-space:nowrap;font-weight:630;color:#40536c;font-size:12px}.fee-check input{accent-color:var(--teal);width:17px;height:17px;cursor:pointer}
     .action-btn{background:var(--navy);border:1px solid var(--navy);border-radius:10px;color:white;min-height:41px;padding:0 15px;font-weight:750;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}.action-btn:hover{background:#1f476b}
 
-    .amenity-filter-bar{display:flex;gap:15px;align-items:center;flex-wrap:wrap;margin-top:13px;padding:12px 13px;border:1px solid #deebed;background:#f6fbfb;border-radius:11px}
-    .amenity-filter-bar label{font-weight:780;font-size:12px;color:#284e63;white-space:nowrap}
-    .amenity-filter-bar select{min-height:36px;max-width:100%;border:1px solid #cadfe3;border-radius:8px;padding:6px 11px;background:#fff;color:#21425b;font-size:12px;font-weight:670}
-    .amenity-help{font-size:11px;color:#64798c;flex:1;min-width:230px;line-height:1.5}
-    .laundry-card{margin-top:10px;padding:9px 10px;background:#f5f8fb;border:1px solid #e1e9ef;border-radius:10px;display:grid;gap:6px}
-    .laundry-status{font-size:11px;color:#617689;line-height:1.45}
-    .laundry-status.documented,.laundry-status.personal-yes{font-weight:790;color:#13715e}
-    .laundry-status.personal-no{color:#7a6570}
-    .laundry-source-link{font-size:10px;font-weight:800;color:#176f74}
-    .laundry-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-    .laundry-controls label{font-size:10px;color:#5c6f82;font-weight:750}
-    .laundry-controls select{flex:1;min-width:110px;max-width:100%;font:inherit;font-size:11px;border:1px solid #cfdde4;border-radius:7px;padding:6px;background:white;color:#29455b}
     .under-filter{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 2px 16px}
     .disclaimer{font-size:12px;color:#5c6c80;max-width:1050px;display:flex;align-items:flex-start;gap:8px}.disclaimer svg{flex-shrink:0;width:15px;height:15px;margin-top:1px;color:#b47a24}
     .reset-btn{background:transparent;border:0;color:var(--teal-dark);font-weight:700;white-space:nowrap;padding:7px 4px}.reset-btn:hover{text-decoration:underline}
@@ -232,14 +220,6 @@
         <div class="field fee-field"><label for="noFee">Broker fee</label><label class="fee-check"><input type="checkbox" id="noFee"><span>Reported no-fee</span></label></div>
         <button class="action-btn" id="apply" type="button"><svg><use href="#i-search"/></svg> Apply filters</button>
       </div>
-      <div class="amenity-filter-bar" role="group" aria-label="Apartment amenities">
-        <label for="laundry">Amenities · In-unit laundry</label>
-        <select id="laundry" aria-describedby="laundry-filter-status">
-          <option value="all">Any / not reported okay</option>
-          <option value="yes">Only marked or documented in-unit washer &amp; dryer</option>
-        </select>
-        <span class="amenity-help" id="laundry-filter-status" role="status">Neither listing feed reports in-unit laundry. You can personally mark it after checking a listing; unknown does not mean no.</span>
-      </div>
     </section>
     <div class="under-filter"><div class="disclaimer"><svg><use href="#i-alert"/></svg><span id="source-note">Showing studios and one-bedrooms SOUTH of the GW Bridge, with identifiable room shares removed. Verify private kitchen, bath, lease and availability.</span></div><button class="reset-btn" id="reset" type="button">Reset filters</button></div>
     <div class="workspace" id="workspace">
@@ -293,23 +273,7 @@
     const $=s=>document.querySelector(s);
     const cards=$("#cards"), count=$("#count"), summary=$("#snapshot"), workspace=$("#workspace");
     for (const area of AREAS) {const o=document.createElement("option");o.value=o.textContent=area;$("#area").append(o);}
-    let listings=[],historical=[],rentcast=[],showSaved=false,map=null,markers=null,markerIndex=new Map(),feedMetadata={},approvedPhotos={},approvedAmenities={},changeMode="all";
-    const laundryStorageKey="nyc-apartment-laundry-checks-v1";
-    let personalLaundry={};
-    try{
-      const saved=JSON.parse(localStorage.getItem(laundryStorageKey)||"{}");
-      if(saved&&typeof saved==="object"&&!Array.isArray(saved))
-        for(const [id,value] of Object.entries(saved)){
-          if((value==="yes"||value==="no")&&id.length<500)personalLaundry[id]=value;
-        }
-    }catch(e){console.warn("Laundry checks unavailable",e);}
-
-    const compareStorageKey="nyc-apartment-comparison-v1";
-    let compareIds=[];
-    try {
-      const savedIds=JSON.parse(localStorage.getItem(compareStorageKey)||"[]");
-      if(Array.isArray(savedIds))compareIds=[...new Set(savedIds.filter(x=>typeof x==="string"&&x.length>0))].slice(0,3);
-    }catch(e){console.warn("Previous comparison selections unavailable",e);}
+    let listings=[],historical=[],rentcast=[],showSaved=false,map=null,markers=null,markerIndex=new Map(),feedMetadata={},approvedPhotos={},changeMode="all";
     let favorites=new Set();
     try{const stored=JSON.parse(localStorage.getItem("nyc-apartment-favorites")||"[]");if(Array.isArray(stored))favorites=new Set(stored.map(String));}catch(e){console.warn("Favorites unavailable",e);}
     const svg=(name,cls="")=>{const el=document.createElementNS("http://www.w3.org/2000/svg","svg");if(cls)el.setAttribute("class",cls);el.setAttribute("aria-hidden","true");const use=document.createElementNS("http://www.w3.org/2000/svg","use");use.setAttribute("href","#i-"+name);el.append(use);return el;};
@@ -356,7 +320,7 @@
     }
     function filtersMatch(x){
       const s=$("#source").value,b=$("#beds").value,a=$("#area").value,minimum=clampRent($("#minRent").value,2250),cap=clampRent($("#rent").value,3000);
-      return southOfGWBridge(x)&&!roomRental(x)&&($("#laundry").value!=="yes"||laundryStatus(x).value==="yes")&&(s==="both"||x.source_kind===s)&&Number(x.rent)>=minimum&&Number(x.rent)<=cap&&(!a||x.area===a)&&(b==="all"||Number(x.bedrooms)===Number(b))&&(!$("#noFee").checked||feeReported(x));
+      return southOfGWBridge(x)&&!roomRental(x)&&(s==="both"||x.source_kind===s)&&Number(x.rent)>=minimum&&Number(x.rent)<=cap&&(!a||x.area===a)&&(b==="all"||Number(x.bedrooms)===Number(b))&&(!$("#noFee").checked||feeReported(x));
     }
     function listForView(){const sort=$("#sort").value;let data=listings.filter(filtersMatch);data.sort((a,b)=>sort==="low"?Number(a.rent)-Number(b.rent):sort==="high"?Number(b.rent)-Number(a.rent):sort==="size"?Number(b.sqft||0)-Number(a.sqft||0):sort==="campus"?campusDistance(a)-campusDistance(b):freshDate(b).localeCompare(freshDate(a)));return data;}
     function showMarker(id){const found=markerIndex.get(String(id));if(!map||!found)return;setListOnly(false);setTimeout(()=>{map.invalidateSize();map.setView(found.getLatLng(),Math.max(map.getZoom(),15),{animate:true});found.openPopup();if(window.matchMedia("(max-width:760px)").matches)$("#map").scrollIntoView({behavior:"smooth",block:"center"});},25);}
@@ -455,7 +419,6 @@
         {label:"Columbia straight-line distance",value:x=>Number.isFinite(campusDistance(x))?campusDistance(x).toFixed(2)+" miles":"Not reported",score:x=>Number.isFinite(campusDistance(x))?campusDistance(x):null,min:true},
         {label:"Listing source & freshness",value:compareSource},
         {label:"Broker fee",value:x=>feeReported(x)?"Reported no-fee":"Not reported"},
-        {label:"In-unit washer & dryer",value:x=>laundryStatus(x).label},
         {label:"Entire private unit",value:x=>"Not independently verified"},
         {label:"Walking to Columbia",link:x=>routeLink(x,"walking"),linkText:"View walking route ↗"},
         {label:"Transit to Columbia",link:x=>routeLink(x,"transit"),linkText:"View transit route ↗"},
@@ -491,33 +454,6 @@
       else dialog.setAttribute("open","");
     }
 
-    // Site-wide documentation requires direct evidence confirming BOTH appliances
-    // physically inside this particular unit, not communal laundry or hookups.
-    const documentedLaundry=x=>{
-      const v=approvedAmenities[String(x.id)];
-      if(!v||v.in_unit_washer_dryer!==true)return null;
-      if(!safeUrl(v.source_url)||!/^\d{4}-\d{2}-\d{2}$/.test(String(v.checked_at||"")))return null;
-      if(typeof v.evidence_note!=="string"||v.evidence_note.trim().length<12)return null;
-      return v;
-    };
-    const laundryStatus=x=>{
-      const personal=personalLaundry[String(x.id)];
-      if(personal==="yes")return {value:"yes",source:"personal",label:"In-unit washer & dryer · your note"};
-      if(personal==="no")return {value:"no",source:"personal",label:"No in-unit washer & dryer · your note"};
-      const documented=documentedLaundry(x);
-      if(documented)return {value:"yes",source:"documented",label:"In-unit washer & dryer · source documented",reference:documented.source_url};
-      return {value:"unknown",source:"unknown",label:"In-unit washer & dryer · not reported"};
-    };
-    function markLaundry(id,value){
-      const key=String(id);
-      if(!listings.some(x=>String(x.id)===key))return;
-      if(value==="yes"||value==="no")personalLaundry[key]=value;
-      else delete personalLaundry[key];
-      try{localStorage.setItem(laundryStorageKey,JSON.stringify(personalLaundry));}
-      catch(e){console.warn("Could not save local laundry check",e);}
-      render();
-      if($("#compare-dialog").open)renderCompareTable();
-    }
     function listingCard(x,idx){
       const card=text("article","listing-card","");
       const visual=text("div","listing-visual scene-"+(AREAS.indexOf(x.area)%4+1),"");
@@ -566,23 +502,6 @@
       const d=campusDistance(x);if(Number.isFinite(d))facts.append(text("span","campus-distance",d.toFixed(1)+" mi from Columbia · straight line"));
       body.append(facts);
 
-      const laundry=laundryStatus(x),laundryBox=text("div","laundry-card","");
-      laundryBox.append(text("div","laundry-status "+(laundry.source==="documented"?"documented":laundry.source==="personal"?"personal-"+laundry.value:""),laundry.label));
-      if(laundry.source==="documented"){
-        const evidence=text("a","laundry-source-link","View evidence at source ↗");
-        evidence.href=laundry.reference;evidence.target="_blank";evidence.rel="noopener noreferrer";laundryBox.append(evidence);
-      }
-      const controls=text("div","laundry-controls","");
-      const laundryLabel=text("label","","Your check");
-      const laundrySelect=text("select","laundry-select","");
-      laundrySelect.setAttribute("aria-label","Your washer and dryer check for "+(x.address||"this listing"));
-      for(const [value,label] of [["","Not checked"],["yes","I checked: both in unit"],["no","I checked: not both in unit"]]){
-        const opt=text("option","",label);opt.value=value;laundrySelect.append(opt);
-      }
-      laundrySelect.value=personalLaundry[String(x.id)]||"";
-      laundrySelect.addEventListener("change",()=>markLaundry(x.id,laundrySelect.value));
-      controls.append(laundryLabel,laundrySelect);laundryBox.append(controls);
-      body.append(laundryBox);
 
       const compareButton=text("button","compare-toggle","Compare +");
       compareButton.type="button";compareButton.dataset.compareId=String(x.id);
@@ -623,10 +542,6 @@
     }
     function render(){
       const allBase=listForView();
-      const confirmedLaundry=listings.filter(x=>southOfGWBridge(x)&&!roomRental(x)&&laundryStatus(x).value==="yes").length;
-      $("#laundry-filter-status").textContent=$("#laundry").value==="yes"
-        ?(confirmedLaundry?confirmedLaundry+" listing(s) with in-unit washer & dryer documented or personally marked. Other listings are unknown, not necessarily without laundry.":"No units are documented or personally marked yet. Check original listings, then use their laundry check control to mark both appliances.")
-        :"Listing feeds do not report unit laundry. "+confirmedLaundry+" listing(s) have source evidence or your own notes. Mark amenities after checking original listings.";
       const all=changeMode==="all"?allBase:allBase.filter(x=>x.source_kind==="rentcast"&&x.change_status===changeMode);
       const saved=all.filter(x=>favorites.has(String(x.id))),matching=showSaved?saved:all;const shown=matching.slice(0,150);
       const comparison=feedMetadata.comparison;
@@ -646,13 +561,13 @@
       const rcChecked=dateOnly(feedMetadata.rcChecked),fmMonth=feedMetadata.fmMonth||"unknown";const mode=$("#source").value;
       summary.textContent=(mode==="historical"?"FirstMover snapshot "+fmMonth+" · not live":mode==="rentcast"?"RentCast checked "+rcChecked+" · provider-reported active":"RentCast checked "+rcChecked+" · FirstMover "+fmMonth);
       $("#source-note").textContent=mode==="historical"?"FirstMover records are historical. Listings north of the approximate GW Bridge approach are excluded; confirm the private-unit lease independently.":mode==="rentcast"?"Only listings south of the approximate GW Bridge approach are included. RentCast status is provider-reported, not guaranteed available; verify the private-unit lease.":"Sources have different freshness. Only south-of-GW-Bridge Manhattan listings appear. Neighborhood labels and private-unit status still require verification.";
-      cards.replaceChildren();if(!shown.length){const empty=text("div","empty","");empty.append(text("strong","",showSaved?"No saved apartments match these filters":"No matching listings"),text("div","",showSaved?"Save an apartment with the heart icon or loosen your filters.":$("#laundry").value==="yes"?"No confirmed in-unit washer & dryer matches these filters. Unchecked units may still have laundry—verify the original listing and mark it on a card.":"Try another neighborhood or source. If you've selected 'no-fee', note that many listings do not report fee status."));cards.append(empty);}else{const frag=document.createDocumentFragment();shown.forEach((x,i)=>frag.append(listingCard(x,i)));cards.append(frag);}refreshPins(shown);updateComparisonUI();
+      cards.replaceChildren();if(!shown.length){const empty=text("div","empty","");empty.append(text("strong","",showSaved?"No saved apartments match these filters":"No matching listings"),text("div","",showSaved?"Save an apartment with the heart icon or loosen your filters.":"Try another neighborhood or source. If you've selected 'no-fee', note that many listings do not report fee status."));cards.append(empty);}else{const frag=document.createDocumentFragment();shown.forEach((x,i)=>frag.append(listingCard(x,i)));cards.append(frag);}refreshPins(shown);updateComparisonUI();
     }
-    for(const id of ["source","area","beds","sort","noFee","laundry"])$("#"+id).addEventListener("change",render);
+    for(const id of ["source","area","beds","sort","noFee"])$("#"+id).addEventListener("change",render);
     $("#minRent").addEventListener("change",()=>{normalizeRentFields("min");render();});
     $("#rent").addEventListener("change",()=>{normalizeRentFields("max");render();});
     $("#apply").addEventListener("click",()=>{normalizeRentFields("min");render();$("#results").scrollIntoView({behavior:"smooth",block:"start"});});
-    $("#reset").addEventListener("click",()=>{$("#source").value=rentcast.length?"rentcast":"historical";$("#area").value="";$("#minRent").value="2250";$("#rent").value="3000";$("#beds").value="all";$("#sort").value="new";$("#noFee").checked=false;$("#laundry").value="all";changeMode="all";render();});
+    $("#reset").addEventListener("click",()=>{$("#source").value=rentcast.length?"rentcast":"historical";$("#area").value="";$("#minRent").value="2250";$("#rent").value="3000";$("#beds").value="all";$("#sort").value="new";$("#noFee").checked=false;changeMode="all";render();});
     for(const [id,kind] of [["change-all","all"],["change-new","newly_seen"],["change-drops","price_drop"]]){
       $("#"+id).addEventListener("click",()=>{changeMode=kind;render();});
     }
@@ -671,9 +586,8 @@
       else dialog.removeAttribute("open");
     });
     async function getJSON(path){try{const r=await fetch(path,{cache:"no-store"});return r.ok?await r.json():null;}catch(e){console.warn("Unable to load data",path,e);return null;}}
-    Promise.all([getJSON("./data/listings.json"),getJSON("./data/rentcast.json"),getJSON("./data/approved-photos.json"),getJSON("./data/approved-amenities.json")]).then(([h,r,p,a])=>{
+    Promise.all([getJSON("./data/listings.json"),getJSON("./data/rentcast.json"),getJSON("./data/approved-photos.json")]).then(([h,r,p])=>{
       approvedPhotos=p&&p.photos&&typeof p.photos==="object"&&!Array.isArray(p.photos)?p.photos:{};
-      approvedAmenities=a&&a.listings&&typeof a.listings==="object"&&!Array.isArray(a.listings)?a.listings:{};
       historical=Array.isArray(h?.listings)?h.listings.filter(southOfGWBridge).map(x=>({...x,source_kind:"historical"})):[];
       rentcast=Array.isArray(r?.listings)?r.listings.filter(southOfGWBridge).map(x=>({...x,source_kind:"rentcast"})):[];
       listings=[...rentcast,...historical];
