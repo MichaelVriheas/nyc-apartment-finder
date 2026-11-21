@@ -16,6 +16,7 @@ from scripts.unit_filter import room_rental_reason
 API = "https://api.github.com/repos/benfwalla/firstmover-open-data-project/contents/public/data"
 RAW = "https://raw.githubusercontent.com/benfwalla/firstmover-open-data-project/main/public/data/"
 OUT = Path("site/data/listings.json")
+MIN_RENT = 2250
 MAX_RENT = 3000
 HEADERS = {"User-Agent": "NYCApartmentFinder/1.0 (public historical data client)", "Accept": "application/vnd.github+json"}
 
@@ -108,7 +109,7 @@ def main():
         place = area(row)
         price = number(row.get("price"))
         bedrooms = number(row.get("bedrooms"))
-        if not place or price is None or not 0 < price <= MAX_RENT or bedrooms not in (0, 1):
+        if not place or price is None or not MIN_RENT <= price <= MAX_RENT or bedrooms not in (0, 1):
             continue
         if room_rental_reason(row):
             filtered_rooms += 1
@@ -145,6 +146,8 @@ def main():
         "source": "FirstMover Open Data (CC0)",
         "source_url": "https://www.firstmovernyc.com/open-data",
         "data_month": month[:-4],
+        "rent_min": MIN_RENT,
+        "rent_max": MAX_RENT,
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "status": "historical_snapshot_unverified",
         "notice": "These were advertised when first posted. They may no longer be available and prices may have changed. Not a live inventory.",
