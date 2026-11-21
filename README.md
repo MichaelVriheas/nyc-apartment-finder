@@ -33,31 +33,6 @@ To keep the old snapshot from showing obviously shared rentals, the frontend als
 
 For location comparison the cards also show the **straight-line distance** from the listed coordinates to Columbia's Morningside campus, plus a sort option. **Walking route** and **Transit route** links open Google Maps from each listing to Columbia's Broadway/116th Street entrance. Google Maps calculates live, route-specific travel times when opened; this website does not store those times or guarantee future (August 2027) service. Routing links use [free Maps URLs](https://developers.google.com/maps/documentation/urls/get-started), **not a billable Google Maps Directions API key**.
 
-## In-unit washer and dryer amenity filter
-
-The marketplace's **Amenities · In-unit laundry** dropdown has two settings: **Any / not reported okay** (default) and **Only marked or documented in-unit washer & dryer**. This specifically means **BOTH an actual washer and dryer inside the private unit**, not building/shared laundry, laundry hookups without appliances, or laundry services.
-
-**Source limitation:** [RentCast's long-term rental listing response schema](https://developers.rentcast.io/reference/rental-listings-long-term) has no dedicated unit washer/dryer field, and [FirstMover's published monthly CSV column list](https://github.com/benfwalla/firstmover-open-data-project/blob/main/scripts/generate-csvs.mjs) also has no amenity columns. We cannot automatically discover confirmed laundry matches using the existing free feeds. **Unreported is unknown, not a negative.** The first build has no source-confirmed laundry matches; selecting the strict filter may initially return zero, and that **does not prove no eligible apartments exist**.
-
-The user can check the original listing, verify both appliances are **inside the listed unit**, then set its **Your check → I checked: both in unit** dropdown on that listing card. There's also an explicit **I checked: not both in unit** option and **Not checked** to clear the note. The user's notes are stored **only in that browser** via `localStorage` (`nyc-apartment-laundry-checks-v1`) and are shown distinctly from independently documented source evidence; they are not shared or synchronized across devices. The same laundry status appears in the side-by-side comparison. The filter includes user-marked positive matches and approved source-evidenced matches.
-
-For future authorized external verification, the public but initially empty `site/data/approved-amenities.json` file can optionally contain exact listing-ID entries such as:
-
-```json
-{
-  "listings": {
-    "exact-rentcast-or-historical-listing-id": {
-      "in_unit_washer_dryer": true,
-      "source_url": "https://example.com/official-unit-listing",
-      "checked_at": "2026-11-21",
-      "evidence_note": "Official unit listing expressly confirms an in-unit washer and dryer."
-    }
-  }
-}
-```
-
-Only add an entry after reviewing a genuine unit-specific source that explicitly confirms both appliances; `source_url` must be HTTPS, `checked_at` must be a real check date, and `evidence_note` must describe the evidence. Never infer from photos of another unit, building laundry facilities, a property-wide generic amenity statement, or missing fields. Remove stale claims when the listing/amenity changes. The manifest is public: **no secrets or private documents**. No extra RentCast API requests, scraper, or paid enrichment service is used.
-
 ## Side-by-side apartment comparisons
 
 Select **Compare +** on up to **three** listing cards. Once two listings are selected, use the bottom comparison dock's **Compare side by side** button to review their most recent stored data in a responsive table. Compare choices persist as listing IDs in the **same browser** using `localStorage`, independently of saved favorites. They continue working across source, neighborhood, and favorite filters; if a property disappears from the refreshed feeds, its comparison selection is removed rather than retaining outdated rental figures. Use the dock or modal's Remove controls to change a selection, or Clear to reset.
