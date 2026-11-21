@@ -1,0 +1,10 @@
+{
+  "policy": "max_20_attempted_requests_per_rolling_31_days",
+  "entries": [
+    {
+      "run": "44931223494-1",
+      "at": "2026-11-21T17:39:26.449627+00:00",
+      "calls": 2
+    }
+  ]
+}
