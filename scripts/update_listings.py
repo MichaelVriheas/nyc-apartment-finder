@@ -11,6 +11,7 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timezone
 from pathlib import Path
+from scripts.unit_filter import room_rental_reason
 
 API = "https://api.github.com/repos/benfwalla/firstmover-open-data-project/contents/public/data"
 RAW = "https://raw.githubusercontent.com/benfwalla/firstmover-open-data-project/main/public/data/"
@@ -102,11 +103,15 @@ def main():
     # UTF-8 BOM tolerant, stream CSV lines from fetched monthly snapshot
     reader = csv.DictReader(io.StringIO(raw.decode("utf-8-sig")))
     listings = {}
+    filtered_rooms = 0
     for row in reader:
         place = area(row)
         price = number(row.get("price"))
         bedrooms = number(row.get("bedrooms"))
         if not place or price is None or not 0 < price <= MAX_RENT or bedrooms not in (0, 1):
+            continue
+        if room_rental_reason(row):
+            filtered_rooms += 1
             continue
         url = (row.get("url") or "").strip()
         if not url.startswith("https://"):
@@ -132,6 +137,7 @@ def main():
             "photo_ids": photo_ids,
             "media_asset_count_at_posting": int(media_assets) if media_assets is not None and media_assets >= 0 else None,
             "photos_usage": "references_only_not_licensed_for_public_display",
+            "unit_scope": "unverified_entire_unit",
             "url": url
         }
     cleaned = sorted(listings.values(), key=lambda x: x["listed_at"], reverse=True)[:2500]
@@ -144,6 +150,8 @@ def main():
         "notice": "These were advertised when first posted. They may no longer be available and prices may have changed. Not a live inventory.",
         "photo_notice": "Photo IDs are source metadata only. This site does not reproduce original listing photographs without permission; visit the original listing for pictures.",
         "coverage_note": "Neighborhood names follow published tags. Northern Upper West Side uses a geographic latitude approximation. Only the eight selected Manhattan search areas are included.",
+        "unit_policy": "Room rentals and co-living listings are removed when identifiable from source fields; verify entire-unit and private kitchen/bathroom with the original listing.",
+        "rooms_excluded": filtered_rooms,
         "listings": cleaned
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
