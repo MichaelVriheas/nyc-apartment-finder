@@ -9,7 +9,7 @@ const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
 
 assert.ok(scripts.length, "Homepage must have executable inline JS");
 for (const script of scripts) new vm.Script(script, { filename: "site/index.html" });
-for (const phrase of ["const roomRental", "return !roomRental(x)", "campusDistance", "private-unit status",
+for (const phrase of ["const roomRental", "return southOfGWBridge(x)&&!roomRental(x)", "campusDistance", "private-unit status",
                       "Straight-line"]) {
   // Case insensitive because human-facing descriptions can vary in capitalization.
   assert.ok(html.toLowerCase().includes(phrase.toLowerCase()), "Missing UI safeguard: " + phrase);
