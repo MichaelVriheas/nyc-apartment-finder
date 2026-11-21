@@ -18,7 +18,12 @@ MAX_RENT = 3000
 HEADERS = {"User-Agent": "NYCApartmentFinder/1.0 (public historical data client)", "Accept": "application/vnd.github+json"}
 
 def fetch(url):
-    req = urllib.request.Request(url, headers=HEADERS)
+    headers = dict(HEADERS)
+    # Authenticate GitHub API directory lookups to avoid the shared anonymous rate limit.
+    # Never send the GitHub token to raw.githubusercontent.com or third-party hosts.
+    if url.startswith("https://api.github.com/") and os.environ.get("GITHUB_TOKEN"):
+        headers["Authorization"] = "Bearer " + os.environ["GITHUB_TOKEN"]
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=90) as response:
         return response.read()
 
