@@ -14,5 +14,9 @@ for (const phrase of ["const roomRental", "return !roomRental(x)", "campusDistan
   // Case insensitive because human-facing descriptions can vary in capitalization.
   assert.ok(html.toLowerCase().includes(phrase.toLowerCase()), "Missing UI safeguard: " + phrase);
 }
+assert.ok(html.includes('id="minRent"'), "Minimum rent control missing");
+assert.ok(html.includes('value="2250"'), "Minimum rent should default to $2,250");
+assert.ok(html.includes('Number(x.rent)>=minimum'), "Minimum rent must be applied to visible listings");
+assert.ok(html.includes('$("#minRent").value="2250"'), "Reset should restore minimum rent");
 assert.ok(!html.includes("Fort Lee"), "Removed search area must not appear");
 console.log("Passed JS syntax and room-rental UI guard checks.");
