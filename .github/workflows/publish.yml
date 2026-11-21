@@ -62,12 +62,16 @@ jobs:
             git push origin main
           fi
           python -m scripts.fetch_rentcast fetch
-          if [ -f site/data/rentcast.json ]; then
-            git add site/data/rentcast.json
+          if [ -f site/data/rentcast.json ] && [ -f site/data/market-history.json ]; then
+            # One atomic commit preserves the exact data + observed historical summary.
+            git add site/data/rentcast.json site/data/market-history.json
             if ! git diff --cached --quiet; then
-              git commit -m "Update RentCast snapshot [skip ci]"
+              git commit -m "Update RentCast snapshot and observed market history [skip ci]"
               git push origin main
             fi
+          else
+            echo "::error::Both RentCast snapshot and market history are required"
+            exit 1
           fi
 
       - name: Import latest public FirstMover historical snapshot
