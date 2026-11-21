@@ -17,6 +17,7 @@ from scripts.rent_history import update_history
 
 LEDGER = Path(".rentcast-budget.json")
 OUTPUT = Path("site/data/rentcast.json")
+HISTORY_OUTPUT = Path("site/data/market-history.json")
 BUDGET = 20  # At most 20 attempted calls in ANY rolling 31-day window.
 MIN_RENT = 2250
 MAX_RENT = 3000
@@ -242,7 +243,7 @@ def fetch():
     OUTPUT.write_text(json.dumps(output, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     # Store one compact observation per successful RentCast check, never FirstMover.
     # This file gets committed with the snapshot in the same GitHub push.
-    update_history(output)
+    update_history(output, path=HISTORY_OUTPUT)
     print("RentCast test results (no secret or addresses shown): " + json.dumps(counts))
     print(f"Published {len(all_rows)} sampled active records. Changes vs preceding snapshot: newly seen={new_count}, lower price={drop_count}, higher price={increase_count}, not found={not_found_count}. Not a verified rental inventory.")
 
