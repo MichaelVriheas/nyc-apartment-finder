@@ -158,6 +158,8 @@
     .compare-table{border-collapse:separate;border-spacing:0;table-layout:fixed;min-width:680px;width:100%;font-size:12px}
     .compare-table thead th{background:#eff6f7;color:#163952;border-bottom:1px solid #dbe7eb;vertical-align:top;padding:13px 12px;text-align:left}
     .compare-table th.row-label{width:150px;text-align:left;white-space:normal;color:#40566c;font-weight:790;background:#f6f8fa}
+    .compare-table tbody th.row-label{position:sticky;left:0;z-index:2;box-shadow:2px 0 4px rgba(20,50,70,.05)}
+    .compare-table thead th.row-label{position:sticky;left:0;z-index:3;background:#eff6f7}
     .compare-table tbody td,.compare-table tbody th{padding:11px 12px;border-bottom:1px solid #e7edf1;vertical-align:top;word-wrap:break-word;overflow-wrap:break-word;line-height:1.45}
     .compare-table tbody tr:last-child td,.compare-table tbody tr:last-child th{border-bottom:0}
     .compare-table tbody tr:nth-child(even) td{background:#fbfcfd}
@@ -354,7 +356,7 @@
       persistCompare();
       updateComparisonUI();
       if($("#compare-dialog").open){
-        if(comparedListings().length<2)$("#compare-dialog").close();
+        if(comparedListings().length<2){const dlg=$("#compare-dialog");if(typeof dlg.close==="function")dlg.close();else dlg.removeAttribute("open");}
         else renderCompareTable();
       }
     }
@@ -364,6 +366,7 @@
         const included=compareIds.includes(btn.dataset.compareId);
         btn.textContent=included?"✓ Added to comparison":"Compare +";
         btn.setAttribute("aria-pressed",String(included));
+        btn.setAttribute("aria-label",(included?"Remove ":"Add ")+(btn.dataset.compareAddress||"apartment")+(included?" from":" to")+" comparison");
         btn.classList.toggle("is-selected",included);
         btn.disabled=!included&&!hasSpace;
         btn.title=btn.disabled?"Maximum three apartments; remove one to add another":included?"Remove from comparison":"Add apartment to comparison";
@@ -497,6 +500,7 @@
 
       const compareButton=text("button","compare-toggle","Compare +");
       compareButton.type="button";compareButton.dataset.compareId=String(x.id);
+      compareButton.dataset.compareAddress=String(x.address||"apartment");
       compareButton.addEventListener("click",()=>toggleCompare(x.id));
       compareButton.setAttribute("aria-label","Add "+(x.address||"apartment")+" to comparison");
       body.append(compareButton);
