@@ -19,6 +19,18 @@ https://michaelvriheas.github.io/nyc-apartment-finder/
 
 The site defaults to the RentCast feed when it has matching records. Choose a source in the drop-down to see the monthly historical data separately, or combine both for research.
 
+## Weekly listing changes
+
+The website tracks two kinds of differences between successive **RentCast** snapshots:
+- **Newly seen:** a rental ID appeared in the latest sampled search but was absent from the preceding saved sample; it may have been listed earlier and missed by the API search limit.
+- **Price drop:** the same rental ID appears in both samples and has a lower advertised base rent than in the prior check.
+- **Price increase:** also recorded, but not currently a separate dashboard filter.
+- **Not found in latest sample:** counted separately, never described as rented or unavailable. The geographic query can return only the first 500 matches, so listings can disappear from the sample without their status changing.
+
+The first imported snapshot is a baseline and displays no false "new" or "price drop" badges. Comparison cards appear after the **next successful scheduled RentCast run**. FirstMover's initial-posting historical records are not used to infer weekly price changes. The UI lets you filter by *All results*, *Newly seen*, and *Price drops*. Counts describe the full sampled RentCast search; filtered views might show fewer.
+
+Unit tests run offline on each deployment using mocked API responses. They do not use free-tier RentCast calls.
+
 ## Automation and API usage safeguards
 
 GitHub Actions workflows:
