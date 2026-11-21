@@ -99,6 +99,11 @@
     .card-facts{display:flex;flex-wrap:wrap;gap:9px;margin-top:10px;color:#52657a;font-size:11px;font-weight:650}.card-facts span{white-space:nowrap}.card-facts .no-fee{background:#def5ee;color:#087368;padding:2px 6px;border-radius:6px}
     .card-facts .photo-ref{background:#e9f0fa;color:#345a83;padding:2px 6px;border-radius:6px}
     .card-facts .campus-distance{background:#f0f5fd;color:#345a83;padding:2px 6px;border-radius:6px}
+    .commute-bar{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:12px 0 0;padding:11px 0 1px;border-top:1px solid #edf0f3}
+    .commute-label{font-size:11px;color:#60718a;font-weight:730;margin-right:2px}
+    .commute-link{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:8px;background:#eaf6f5;color:#086e70;border:1px solid #d5e8e7;text-decoration:none;font-size:11px;font-weight:790;white-space:nowrap}
+    .commute-link:hover,.commute-link:focus-visible{background:#d6efeb;text-decoration:underline}
+    .route-note{font-size:10px;color:#7b8898;margin-top:5px}
     .unit-disclaimer{display:block;font-size:11px;line-height:1.45;color:#64758a;margin-top:7px}
     .photo-source-link{position:absolute;left:11px;bottom:10px;z-index:3;display:inline-flex;align-items:center;gap:4px;max-width:calc(100% - 24px);padding:6px 9px;background:#fff;color:#123b5e;border-radius:8px;font-size:11px;font-weight:800;text-decoration:none;box-shadow:0 2px 10px #162b4340}
     .photo-source-link:hover,.photo-source-link:focus-visible{background:#e8f8f5;text-decoration:underline}
@@ -179,7 +184,7 @@
         <div class="card-grid" id="cards" aria-live="polite"></div>
       </section>
     </div>
-    <footer class="footer">Research tool only. RentCast listings are provider-reported active at the last check, not guaranteed available now; FirstMover listings are historical. Asking base rents may exclude additional charges, Manhattan neighborhood labels are approximations, and campus distances are straight-line estimates rather than walking or transit times. Obvious room shares are filtered, but private-unit status is not independently verified. This site is not affiliated with Columbia University, RentCast, FirstMover, StreetEasy or Zillow. <a href="https://www.firstmovernyc.com/open-data" target="_blank" rel="noopener noreferrer">FirstMover Open Data (CC0)</a>. Favorites stay in this browser; some external apartment searches may not locate an exact listing.</footer>
+    <footer class="footer">Research tool only. RentCast listings are provider-reported active at the last check, not guaranteed available now; FirstMover listings are historical. Asking base rents may exclude additional charges, Neighborhoods use NYC's 2020 Neighborhood Tabulation Areas (not definitive neighborhood borders), with some approximate sub-neighborhood splits; campus distances are straight-line rather than walking distances. Walking and transit links open current Google Maps routes. Obvious room shares are filtered, but private-unit status is not independently verified. This site is not affiliated with Columbia University, RentCast, FirstMover, StreetEasy or Zillow. <a href="https://www.firstmovernyc.com/open-data" target="_blank" rel="noopener noreferrer">FirstMover Open Data (CC0)</a>. Favorites stay in this browser; some external apartment searches may not locate an exact listing.</footer>
   </main>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
@@ -287,6 +292,23 @@
       const d=campusDistance(x);if(Number.isFinite(d))facts.append(text("span","campus-distance",d.toFixed(1)+" mi from Columbia · straight line"));
       body.append(facts);
       body.append(text("small","unit-disclaimer","Room shares excluded when identified · Entire-unit status and private kitchen/bath not independently verified"));
+      const startPoint=Number.isFinite(Number(x.latitude))&&Number.isFinite(Number(x.longitude))&&x.latitude!=null&&x.longitude!=null
+        ? String(x.latitude)+","+String(x.longitude) : String(x.address||"");
+      if(startPoint){
+        const commute=text("div","commute-bar","");
+        commute.append(text("span","commute-label","To Columbia:"));
+        for(const [mode,label] of [["walking","Walking route ↗"],["transit","Transit route ↗"]]){
+          const q=new URLSearchParams({api:"1",origin:startPoint,
+            destination:"Columbia University, 116th St and Broadway, New York, NY",travelmode:mode});
+          const a=text("a","commute-link",label);
+          a.href="https://www.google.com/maps/dir/?"+q.toString();
+          a.target="_blank";a.rel="noopener noreferrer";
+          a.setAttribute("aria-label","Open "+mode+" directions from this listing to Columbia in Google Maps");
+          a.title="Opens directions and travel-time information in Google Maps; travel times are not shown or stored on this site";
+          commute.append(a);
+        }
+        body.append(commute,text("div","route-note","Live routing opens in Google Maps · no commute-time estimates stored here"));
+      }
       const foot=text("div","card-foot","");foot.append(text("span","date-info",x.source_kind==="rentcast"?"Provider last saw: "+dateOnly(x.last_seen):"First advertised: "+dateOnly(x.listed_at)));
       const links=text("div","card-links","");const loc=Number(x.latitude),lng=Number(x.longitude);if(Number.isFinite(loc)&&Number.isFinite(lng)&&x.latitude!=null&&x.longitude!=null){const jump=text("button","map-jump","Map");jump.type="button";jump.setAttribute("aria-label","Show "+(x.address||"this apartment")+" on map");jump.addEventListener("click",()=>showMarker(x.id));links.append(jump);}
       const url=originalListing;if(url){const a=text("a","card-link",x.source_kind==="rentcast"?"Search address":photoAdvertised?"Listing & photos":"Open listing");a.href=url;a.target="_blank";a.rel="noopener noreferrer";a.append(svg("external"));a.setAttribute("aria-label",x.source_kind==="rentcast"?"Search the web for this address":"Open original listing in a new tab");links.append(a);}else links.append(text("span","date-info","Link unavailable"));foot.append(links);body.append(foot);card.append(body);return card;
@@ -308,7 +330,7 @@
       const isBaseline=!comparison||comparison.baseline;
       $("#new-count").textContent=isBaseline?"—":String(comparison.newly_found_count??0);
       $("#drop-count").textContent=isBaseline?"—":String(comparison.price_drop_count??0);
-      $("#change-date").textContent=isBaseline?"Baseline saved. Changes will appear after the next successful weekly RentCast refresh.":("Comparing "+dateOnly(comparison.previous_checked_at_utc)+" with "+dateOnly(comparison.current_checked_at_utc)+" · all searched Manhattan areas");
+      $("#change-date").textContent=isBaseline?"Baseline saved. After the geography change, comparison tracking will restart with the next successful weekly RentCast refresh.":("Comparing "+dateOnly(comparison.previous_checked_at_utc)+" with "+dateOnly(comparison.current_checked_at_utc)+" · two targeted Manhattan searches");
       $("#not-seen-note").textContent=isBaseline?"Tracking uses RentCast only. FirstMover advertisements are historical.":"Not found in latest sampled search: "+Number(comparison.not_found_count||0)+". These may simply be outside the first 500 API results—not necessarily rented. Counts cover all searched areas.";
       if(isBaseline&&changeMode!=="all")changeMode="all";
       for(const [id,kind] of [["change-all","all"],["change-new","newly_seen"],["change-drops","price_drop"]]){
@@ -320,7 +342,7 @@
       const labels=$("#source-counts");labels.replaceChildren();if(rcCount)labels.append(text("span","count-pill",rcCount+" RentCast"));if(histCount)labels.append(text("span","count-pill historical",histCount+" historical"));
       const rcChecked=dateOnly(feedMetadata.rcChecked),fmMonth=feedMetadata.fmMonth||"unknown";const mode=$("#source").value;
       summary.textContent=(mode==="historical"?"FirstMover snapshot "+fmMonth+" · not live":mode==="rentcast"?"RentCast checked "+rcChecked+" · provider-reported active":"RentCast checked "+rcChecked+" · FirstMover "+fmMonth);
-      $("#source-note").textContent=mode==="historical"?"FirstMover records are historical, not currently verified available. Identified room shares are excluded; confirm the lease covers an entire private apartment.":mode==="rentcast"?"RentCast listings are provider-reported active, not guaranteed available. Identified room shares are excluded, but private-unit status is not independently verified. Neighborhood boundaries are approximate.":"Sources have different freshness. Identified room shares are excluded, but check whether each listing includes a private bathroom, kitchen and entire-unit lease.";
+      $("#source-note").textContent=mode==="historical"?"FirstMover listings are historical. The geographic filter uses 2020 NYC NTA areas, with approximate smaller-neighborhood labels. Confirm any private-unit lease independently.":mode==="rentcast"?"RentCast is provider-reported, not guaranteed available. NYC 2020 NTA boundaries improve Manhattan inclusion, but smaller neighborhood labels are approximate. Verify the private-unit lease.":"Sources have different freshness. NYC 2020 NTA geography helps exclude other boroughs, but smaller neighborhood labels and private-unit status still require verification.";
       cards.replaceChildren();if(!shown.length){const empty=text("div","empty","");empty.append(text("strong","",showSaved?"No saved apartments match these filters":"No matching listings"),text("div","",showSaved?"Save an apartment with the heart icon or loosen your filters.":"Try another neighborhood or source. If you've selected 'no-fee', note that many listings do not report fee status."));cards.append(empty);}else{const frag=document.createDocumentFragment();shown.forEach((x,i)=>frag.append(listingCard(x,i)));cards.append(frag);}refreshPins(shown);
     }
     for(const id of ["source","area","beds","sort","noFee"])$("#"+id).addEventListener("change",render);
