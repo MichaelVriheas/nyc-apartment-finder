@@ -43,7 +43,7 @@ class RentcastTrackingTests(unittest.TestCase):
         }
         mod.OUTPUT.parent.mkdir(parents=True, exist_ok=True)
         mod.OUTPUT.write_text(json.dumps(previous))
-        rows = [fixture("stay", 2600),fixture("arrived", 2750),fixture("out-of-state", 2400,state="NJ")]
+        rows = [fixture("stay", 2600),fixture("arrived", 2750),fixture("out-of-state", 2400,state="NJ"),fixture("below-minimum",2249),fixture("above-maximum",3001)]
         with patch.object(mod, "retrieve", return_value=rows) as retrieve:
             mod.fetch()
         self.assertEqual(retrieve.call_count, 1)
@@ -60,12 +60,24 @@ class RentcastTrackingTests(unittest.TestCase):
         self.assertFalse(any(x["area"]=="Fort Lee" for x in ids.values()))
 
     def test_first_snapshot_is_baseline(self):
-        with patch.object(mod,"retrieve",return_value=[fixture("first",2100)]):
+        with patch.object(mod,"retrieve",return_value=[fixture("first",2300)]):
             mod.fetch()
         result=json.loads(mod.OUTPUT.read_text())
         self.assertTrue(result["comparison"]["baseline"])
         self.assertEqual(result["comparison"]["newly_found_count"],0)
         self.assertEqual(result["listings"][0]["change_status"],"baseline")
+
+    def test_exact_price_boundaries_are_included(self):
+        with patch.object(mod, "retrieve", return_value=[
+            fixture("lower-boundary",2250),fixture("upper-boundary",3000),
+            fixture("below-boundary",2249),fixture("above-boundary",3001)
+        ]) as retrieve:
+            mod.fetch()
+        self.assertEqual(retrieve.call_count,1)
+        result=json.loads(mod.OUTPUT.read_text())
+        self.assertEqual({x["rent"] for x in result["listings"]},{2250,3000})
+        self.assertEqual(result["rent_min"],2250)
+        self.assertEqual(result["rent_max"],3000)
 
     def test_fetch_without_reservation_does_not_call_api(self):
         mod.LEDGER.write_text(json.dumps({"entries":[]}))
