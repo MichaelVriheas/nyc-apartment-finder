@@ -274,6 +274,14 @@
     const cards=$("#cards"), count=$("#count"), summary=$("#snapshot"), workspace=$("#workspace");
     for (const area of AREAS) {const o=document.createElement("option");o.value=o.textContent=area;$("#area").append(o);}
     let listings=[],historical=[],rentcast=[],showSaved=false,map=null,markers=null,markerIndex=new Map(),feedMetadata={},approvedPhotos={},changeMode="all";
+    // Store comparison choices by listing ID in this browser, not a cached copy
+    // of prices, so refreshed listings always show current saved feed values.
+    const compareStorageKey="nyc-apartment-comparison-v1";
+    let compareIds=[];
+    try {
+      const savedIds=JSON.parse(localStorage.getItem(compareStorageKey)||"[]");
+      if(Array.isArray(savedIds))compareIds=[...new Set(savedIds.filter(x=>typeof x==="string"&&x.length>0))].slice(0,3);
+    }catch(e){console.warn("Previous comparison selections unavailable",e);}
     let favorites=new Set();
     try{const stored=JSON.parse(localStorage.getItem("nyc-apartment-favorites")||"[]");if(Array.isArray(stored))favorites=new Set(stored.map(String));}catch(e){console.warn("Favorites unavailable",e);}
     const svg=(name,cls="")=>{const el=document.createElementNS("http://www.w3.org/2000/svg","svg");if(cls)el.setAttribute("class",cls);el.setAttribute("aria-hidden","true");const use=document.createElementNS("http://www.w3.org/2000/svg","use");use.setAttribute("href","#i-"+name);el.append(use);return el;};
