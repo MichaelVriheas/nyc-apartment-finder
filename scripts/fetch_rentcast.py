@@ -12,7 +12,7 @@ import urllib.error
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from scripts.unit_filter import room_rental_reason
-from scripts.areas import classify_area
+from scripts.areas import classify_area, GWB_POLICY
 from scripts.rent_history import update_history
 
 LEDGER = Path(".rentcast-budget.json")
@@ -22,14 +22,14 @@ BUDGET = 20  # At most 20 attempted calls in ANY rolling 31-day window.
 MIN_RENT = 2250
 MAX_RENT = 3000
 # Two overlapping targeted circles instead of one 3.7-mile search capped at 500.
-# Together their radii cover the selected NTA polygons (but not necessarily
-# all matches if either query still reaches the 500-result response cap).
+# Together their radii cover targeted NTA areas SOUTH of the George Washington
+# Bridge approach (but not every match if a query reaches the 500-result cap).
 SEARCHES = [
     ("Columbia / southern search", {"latitude": "40.8000", "longitude": "-73.9635", "radius": "1.85"}),
-    ("Harlem / northern search", {"latitude": "40.8435", "longitude": "-73.9435", "radius": "2.15"}),
+    ("Harlem / northern search", {"latitude": "40.8310", "longitude": "-73.9450", "radius": "1.65"}),
 ]
 CALLS_PER_RUN = len(SEARCHES)
-SEARCH_METHOD = "2020-nta-two-targeted-circles-v1"
+SEARCH_METHOD = "2020-nta-two-targeted-circles-south-of-gwb-v2"
 ENDPOINT = "https://api.rentcast.io/v1/listings/rental/long-term"
 
 def now():
@@ -227,9 +227,10 @@ def fetch():
         "source": "RentCast rental listings API",
         "status": "provider_reported_active_at_check",
         "checked_at_utc": checked_at,
-        "warning": "Provider-reported active status does not guarantee availability. Neighborhood assignments use 2020 NYC NTA statistical polygons with approximate sub-area labels; results are capped at 500 per query.",
+        "warning": "Only targeted Manhattan apartments south of the approximate GW Bridge approach are included. Active status is provider-reported, not guaranteed available. NYC 2020 NTA areas and sub-neighborhood splits are approximate; results may be capped at 500 per query.",
         "query_counts": counts,
         "search_method": SEARCH_METHOD,
+        "geographic_policy": GWB_POLICY,
         "geography_source": "NYC Department of City Planning 2020 NTA polygons; narrower neighborhood labels are approximated",
         "search_response_limit_hit": any(c["at_response_limit"] for c in counts.values()),
         "rent_min": MIN_RENT,
