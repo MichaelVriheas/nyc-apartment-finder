@@ -1,69 +1,244 @@
-<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NYC Apartment Finder · Columbia Area</title>
-<link rel="preconnect" href="https://unpkg.com">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<style>
-:root{color-scheme:light;--ink:#16283e;--muted:#61718a;--navy:#122b4b;--accent:#147b86;--line:#dce5ed;--bg:#f4f7fa;--white:#fff}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}header{background:var(--navy);color:white;padding:25px max(20px,calc((100vw - 1320px)/2))}header h1{margin:0;font-size:clamp(23px,3vw,34px);letter-spacing:-.8px}header p{margin:4px 0 0;color:#b9d4df}.shell{max-width:1360px;margin:auto;padding:22px}.alert{border:1px solid #ebd7a1;background:#fffae9;color:#70511a;padding:12px 17px;border-radius:12px;margin-bottom:18px}.controls{background:white;border:1px solid var(--line);border-radius:16px;padding:19px;margin-bottom:17px;display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:14px;align-items:end;box-shadow:0 3px 15px #1a344209}.control label{display:block;font-size:12px;font-weight:750;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}select,input{font:inherit;max-width:100%;width:100%;border:1px solid #cbd8e3;border-radius:9px;padding:9px 10px;background:#fff;color:var(--ink)}.check{display:flex;align-items:center;gap:8px;min-height:40px}.check input{width:18px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}button{font:inherit;border:1px solid #cddce4;background:white;border-radius:10px;padding:9px 13px;cursor:pointer;color:var(--ink)}button:hover{border-color:var(--accent)}button.active{background:var(--navy);color:white}.summary{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0;color:var(--muted)}.layout{display:grid;grid-template-columns:minmax(300px,520px) minmax(280px,1fr);gap:17px;align-items:start}.results{display:grid;gap:12px;max-height:calc(100vh - 275px);overflow:auto;padding-right:4px}.listing{border:1px solid var(--line);border-radius:14px;background:#fff;padding:17px;box-shadow:0 4px 16px #20334d08}.listing .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.price{font-weight:800;font-size:23px;letter-spacing:-.7px}.meta{font-size:13px;color:var(--muted);margin-top:5px}.address{font-weight:650;margin-top:9px}.pill{display:inline-block;background:#eaf4f5;border-radius:7px;color:#1d6572;font-size:12px;padding:3px 7px;margin:7px 4px 0 0}.listing a{color:#116d7a;font-weight:650;text-decoration:none}.listing a:hover{text-decoration:underline}.bottom{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:9px}.heart{font-size:21px;line-height:1}.map-panel{position:sticky;top:14px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:white}#map{height:min(65vh,750px);min-height:480px}.map-foot{padding:12px;font-size:12px;color:var(--muted)}.empty{padding:30px;border:1px dashed #bccdd7;border-radius:14px;background:white;color:var(--muted)}footer{color:var(--muted);font-size:12px;margin:23px 0}.sr-only{position:absolute;left:-9999px}@media(max-width:900px){.controls{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}.results{max-height:unset;overflow:visible}.map-panel{position:static;order:-1}#map{height:340px;min-height:340px}}@media(max-width:520px){.controls{grid-template-columns:1fr 1fr}.shell{padding:12px}.listing{padding:13px}}
-</style></head><body>
-<header><h1>NYC Apartment Finder</h1><p>Explore rentals around Columbia University and Fort Lee · August 2027 move</p></header>
-<main class="shell"><div class="alert"><strong>Check every listing independently.</strong> RentCast records show provider-reported activity at the last API check, not guaranteed availability. The FirstMover records are historical snapshots. Prices, fees and move-in dates require verification.</div>
-<section class="controls" aria-label="Apartment filters">\n<div class="control"><label for="source">Listing source</label><select id="source"><option value="rentcast">Recently checked (RentCast)</option><option value="historical">Historical (FirstMover)</option><option value="both">Both sources</option></select></div>
-<div class="control"><label for="area">Neighborhood</label><select id="area"><option value="">All nine areas</option></select></div>
-<div class="control"><label for="rent">Maximum base rent</label><input id="rent" type="number" min="500" max="15000" step="100" value="3000"></div>
-<div class="control"><label for="beds">Apartment type</label><select id="beds"><option value="all">Studio + 1 bedroom</option><option value="0">Studio only</option><option value="1">One bedroom only</option></select></div>
-<div class="control"><label for="sort">Sort results</label><select id="sort"><option value="new">Newest advertised</option><option value="low">Lowest rent</option><option value="high">Highest rent</option><option value="size">Largest size</option></select></div>
-<div class="control"><label for="noFee">Broker fee</label><div class="check"><input id="noFee" type="checkbox"><span>Reported no-fee</span></div></div>
-</section>
-<div class="actions"><button id="all" class="active" type="button">All listings</button><button id="saved" type="button">Saved favorites</button><button id="reset" type="button">Reset filters</button></div>
-<div class="summary"><span id="count" role="status">Loading data…</span><span id="snapshot"></span></div>
-<div class="layout"><section class="results" id="results" aria-label="Apartment results"></section><aside class="map-panel"><div id="map" aria-label="Map of rental listings"></div><div class="map-foot">📍 Markers indicate locations from published data, not verified available apartments. © OpenStreetMap contributors.</div></aside></div>
-<footer>Data: <a href="https://www.firstmovernyc.com/open-data" target="_blank" rel="noopener">FirstMover Open Data</a> (CC0). Original listing links may be expired. Favorites are stored only in this browser. Fort Lee may not be represented in the NYC-focused dataset. No affiliation with Columbia University, FirstMover, StreetEasy or Zillow.</footer></main>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
-"use strict";
-const AREAS=["Morningside Heights","Manhattan Valley","Manhattanville","Hamilton Heights","South Harlem","Northern Upper West Side","Central Harlem","Washington Heights","Fort Lee"];
-const $=s=>document.querySelector(s); const results=$("#results"),count=$("#count"),snapshot=$("#snapshot");
-for(const a of AREAS){const o=document.createElement("option");o.value=o.textContent=a;$("#area").append(o)}
-let listings=[],historical=[],rentcast=[],showSaved=false,map,markers;
-try{map=L.map("map").setView([40.813,-73.967],12);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',maxZoom:19}).addTo(map);markers=L.layerGroup().addTo(map);L.marker([40.8075,-73.9626]).addTo(map).bindPopup("Columbia University · Morningside campus")}catch(e){$("#map").textContent="Map unavailable; listing cards still work."}
-let favorites=new Set();try{favorites=new Set(JSON.parse(localStorage.getItem("nyc-apartment-favorites")||"[]"))}catch(e){}
-const money=n=>"$"+Number(n||0).toLocaleString("en-US");
-const safeUrl=s=>{try{const u=new URL(s);return u.protocol==="https:"?u.href:null}catch(e){return null}};
-const textEl=(tag,cls,value)=>{let e=document.createElement(tag);if(cls)e.className=cls;e.textContent=value;return e};
-function favorite(id){if(favorites.has(id))favorites.delete(id);else favorites.add(id);try{localStorage.setItem("nyc-apartment-favorites",JSON.stringify([...favorites]))}catch(e){}render()}
-function render(){
- let data=listings.filter(x=>($("#source").value==="both"||x.source_kind===$("#source").value)&&x.rent<=Number($("#rent").value||3000)&&(!$("#area").value||x.area===$("#area").value)&&($("#beds").value==="all"||String(x.bedrooms)===$("#beds").value)&&(!$("#noFee").checked||["true","yes","1"].includes(String(x.no_fee_at_posting).toLowerCase()))&&(!showSaved||favorites.has(x.id)));
- const sort=$("#sort").value;data.sort((a,b)=>sort==="low"?a.rent-b.rent:sort==="high"?b.rent-a.rent:sort==="size"?(b.sqft||0)-(a.sqft||0):String(b.listed_at||"").localeCompare(String(a.listed_at||"")));
- const total=data.length;data=data.slice(0,150);
- count.textContent=total.toLocaleString()+" listing"+(total===1?"":"s")+(total>150?" · showing first 150":"")+" · "+($("#source").selectedOptions[0]?.textContent||"");results.replaceChildren();if(markers)markers.clearLayers();
- if(!data.length){results.append(textEl("div","empty",listings.length?"No matching listings. This may mean the selected source has no records for your filters.":"No data loaded yet. Check the GitHub Actions data refresh workflow."));return}
- const pins=[];
- for(const x of data){
-  const card=textEl("article","listing","");const top=textEl("div","top","");const left=document.createElement("div");
-  left.append(textEl("div","price",money(x.rent)+" / mo"),textEl("div","meta",(x.bedrooms===0?"Studio":"1 bedroom")+" · "+(x.bathrooms??"?")+" bath"+(x.sqft?" · "+Math.round(x.sqft).toLocaleString()+" sq ft":"")));
-  const heart=textEl("button","heart",favorites.has(x.id)?"♥":"♡");heart.type="button";heart.setAttribute("aria-label",favorites.has(x.id)?"Remove favorite":"Save favorite");heart.onclick=()=>favorite(x.id);top.append(left,heart);card.append(top);
-  card.append(textEl("div","address",(x.address||"Address unavailable")+(x.unit?" · Unit "+x.unit:"")),textEl("span","pill",x.area),textEl("span","pill",x.source_kind==="rentcast"?"RentCast: active at last check":"FirstMover: historical"),...(x.area_estimated?[textEl("span","pill","Area approximate")]:[]));
-  const bottom=textEl("div","bottom","");bottom.append(textEl("span","meta",x.source_kind==="rentcast"?"Provider last saw: "+String(x.last_seen||"unknown").slice(0,10):(x.listed_at?"First advertised: "+String(x.listed_at).slice(0,10):"Advertisement date unavailable")));
-  const link=document.createElement("a");link.textContent=x.link_label||"Original listing ↗";const u=safeUrl(x.url);if(u){link.href=u;link.target="_blank";link.rel="noopener noreferrer"}else{link.textContent="Link unavailable"}bottom.append(link);card.append(bottom);results.append(card);
-  if(markers&&Number.isFinite(Number(x.latitude))&&Number.isFinite(Number(x.longitude))&&x.latitude!=null&&x.longitude!=null){
-   const lat=Number(x.latitude),lng=Number(x.longitude);if(lat>40&&lat<42&&lng>-75&&lng<-72){const pin=L.circleMarker([lat,lng],{radius:6,weight:2,color:"#fff",fillColor:"#137d88",fillOpacity:.9}).bindPopup(money(x.rent)+" · "+(x.bedrooms===0?"Studio":"1 bedroom")+"<br>"+String(x.area).replace(/[&<>]/g,""));pin.addTo(markers);pins.push([lat,lng])}
-  }
- }
- if(markers&&pins.length){const b=L.latLngBounds(pins);map.fitBounds(b.pad(.12),{maxZoom:14,animate:false})}
-}
-for(const id of ["source","area","rent","beds","sort","noFee"])$("#"+id).addEventListener("input",render);
-$("#all").onclick=()=>{showSaved=false;$("#all").classList.add("active");$("#saved").classList.remove("active");render()};
-$("#saved").onclick=()=>{showSaved=true;$("#saved").classList.add("active");$("#all").classList.remove("active");render()};
-$("#reset").onclick=()=>{$("#area").value="";$("#rent").value="3000";$("#beds").value="all";$("#sort").value="new";$("#noFee").checked=false;$("#source").value=rentcast.length?"rentcast":"historical";render()};
-async function getJSON(path){try{const response=await fetch(path,{cache:"no-store"});if(!response.ok)return null;return await response.json()}catch(e){console.warn("Data file unavailable",path,e);return null}}
-Promise.all([getJSON("./data/listings.json"),getJSON("./data/rentcast.json")]).then(([h,r])=>{
- historical=Array.isArray(h?.listings)?h.listings.map(x=>({...x,source_kind:"historical"})):[];
- rentcast=Array.isArray(r?.listings)?r.listings:[];
- listings=[...rentcast,...historical];
- $("#source").value=rentcast.length?"rentcast":"historical";
- const info=rentcast.length?"RentCast checked "+String(r.checked_at_utc||"").slice(0,10)+" · "+rentcast.length+" matched · ": "";
- snapshot.textContent=info+"FirstMover "+String(h?.data_month||"unavailable")+" (historical)";
- render();
-});
-</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#132b49">
+  <meta name="description" content="Explore studio and one-bedroom rental listings near Columbia University and Fort Lee, with a map, filters, and clearly labeled data sources.">
+  <title>NYC Apartment Finder | Columbia &amp; Fort Lee</title>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root {--navy:#132b49;--navy-2:#203d60;--teal:#117f82;--teal-dark:#08666f;--ink:#1c2e45;--muted:#6c7a8b;--border:#e1e8ef;--paper:#ffffff;--canvas:#f5f7fa;--soft:#eaf5f3;--shadow:0 4px 21px rgba(22,44,68,.055)}
+    *,*::before,*::after{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;color:var(--ink);background:var(--canvas);font:14px/1.48 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif}
+    button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.6;cursor:not-allowed}
+    button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #66c8c7;outline-offset:2px}
+    a{color:var(--teal-dark)}
+    .container{width:min(100% - 46px,1660px);margin:0 auto}
+    .site-header{background:#fff;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+    .masthead{min-height:102px;display:flex;justify-content:space-between;align-items:center;gap:22px;position:relative;z-index:1}
+    .brand{display:flex;align-items:center;gap:14px;min-width:0}
+    .brand-mark{width:55px;height:55px;border-radius:13px;background:linear-gradient(150deg,#e5f3f4,#eff3fb);color:var(--navy);display:grid;place-items:center;flex-shrink:0;box-shadow:inset 0 0 0 1px #d9e6eb}
+    .brand-mark svg{width:35px;height:35px}
+    .brand h1{font:700 clamp(25px,2.3vw,36px)/1.1 Georgia,"Iowan Old Style",serif;letter-spacing:-.7px;margin:0 0 5px;color:var(--navy)}
+    .brand p{margin:0;color:#60718a;font-size:13px;letter-spacing:.04px}
+    .header-skyline{position:absolute;pointer-events:none;left:39%;right:14%;bottom:0;height:83px;opacity:.45;z-index:0;overflow:hidden;background:linear-gradient(0deg,#e9f0f6 0 11px,transparent 11px)}
+    .skyline-line{position:absolute;bottom:11px;background:linear-gradient(180deg,#b7cfdb,#eaf1f6);border-radius:4px 4px 0 0;opacity:.85}
+    .skyline-line:nth-child(1){left:6%;width:4%;height:21px}.skyline-line:nth-child(2){left:11%;width:5%;height:40px}.skyline-line:nth-child(3){left:19%;width:6%;height:30px}.skyline-line:nth-child(4){left:26%;width:3%;height:61px}.skyline-line:nth-child(5){left:31%;width:9%;height:35px}.skyline-line:nth-child(6){left:43%;width:5%;height:53px}.skyline-line:nth-child(7){left:52%;width:10%;height:28px}.skyline-line:nth-child(8){left:67%;width:4%;height:46px}.skyline-line:nth-child(9){left:76%;width:5%;height:25px}.skyline-line:nth-child(10){left:87%;width:8%;height:37px}
+    .header-nav{display:flex;align-items:center;gap:8px;flex-shrink:0}
+    .nav-link{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:11px;text-decoration:none;font-weight:650;color:#334962;border:1px solid transparent;background:transparent;white-space:nowrap}
+    .nav-link:hover{background:#f3f7f9}.nav-link.active{background:var(--navy);color:#fff}
+    .nav-link svg,.filter-heading svg,.chip svg,.icon-button svg,.action-btn svg,.card-link svg,.view-button svg{width:17px;height:17px;flex:0 0 auto}
+    .fav-bubble{background:#d8f2ef;color:#0f666d;padding:0 6px;border-radius:20px;font-size:11px;min-width:18px;text-align:center}
+    .overview{display:flex;flex-wrap:wrap;align-items:center;gap:11px;padding:15px 0 19px}
+    .chip{display:flex;gap:9px;align-items:center;background:#eff7f6;border:1px solid #dcebea;border-radius:11px;padding:10px 15px;color:var(--navy);font-size:13px;white-space:nowrap}
+    .chip svg{color:var(--teal)}.chip b{font-weight:770}
+    .page-main{padding:22px 0 34px}
+    .filter-panel{background:var(--paper);border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow);padding:17px 18px 16px}
+    .filter-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+    .filter-heading{display:flex;align-items:center;gap:8px;font-weight:800;color:#203c57;font-size:14px}
+    .filter-meta{color:var(--muted);font-size:12px}
+    .filter-grid{display:grid;grid-template-columns:minmax(154px,1.4fr) minmax(147px,1.2fr) minmax(122px,1fr) minmax(140px,1.05fr) minmax(139px,1fr) auto auto;gap:11px;align-items:end}
+    .field{min-width:0}.field label{display:block;font-weight:750;font-size:11px;text-transform:uppercase;letter-spacing:.055em;margin-bottom:7px;color:#65748a}
+    .field input,.field select{width:100%;height:41px;min-width:0;border:1px solid #d5dfe9;border-radius:9px;color:var(--navy);background-color:#fff;padding:0 12px;outline-color:var(--teal);font-size:13px;font-weight:630}
+    .field select{padding-right:20px}.fee-field{padding-bottom:4px}.fee-check{min-height:38px;display:flex;gap:8px;align-items:center;white-space:nowrap;font-weight:630;color:#40536c;font-size:12px}.fee-check input{accent-color:var(--teal);width:17px;height:17px;cursor:pointer}
+    .action-btn{background:var(--navy);border:1px solid var(--navy);border-radius:10px;color:white;min-height:41px;padding:0 15px;font-weight:750;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}.action-btn:hover{background:#1f476b}
+    .under-filter{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 2px 16px}
+    .disclaimer{font-size:12px;color:#5c6c80;max-width:1050px;display:flex;align-items:flex-start;gap:8px}.disclaimer svg{flex-shrink:0;width:15px;height:15px;margin-top:1px;color:#b47a24}
+    .reset-btn{background:transparent;border:0;color:var(--teal-dark);font-weight:700;white-space:nowrap;padding:7px 4px}.reset-btn:hover{text-decoration:underline}
+    .workspace{display:grid;grid-template-columns:minmax(315px,36%) minmax(0,1fr);gap:17px;align-items:start}
+    .workspace.list-only{display:block}.workspace.list-only .map-panel{display:none}
+    .map-panel{position:sticky;top:14px;border:1px solid var(--border);border-radius:17px;background:#fff;box-shadow:var(--shadow);overflow:hidden}
+    .map-title{height:55px;display:flex;justify-content:space-between;align-items:center;padding:0 16px;gap:8px}
+    .panel-heading{font-weight:800;font-size:15px;color:var(--navy)}.map-caption{color:#778698;font-size:11px}
+    #map{height:min(68vh,725px);min-height:520px;background:linear-gradient(145deg,#eaf3f7,#eef1f3)}
+    .map-footer{padding:12px 15px;display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:#657589;line-height:1.25;align-items:center}
+    .legend-dot{height:9px;width:9px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;background:var(--teal)}.legend-dot.historic{background:#7f90a3}.legend-dot.school{background:var(--navy)}
+    .map-empty{display:grid;place-items:center;color:#7a8a9c;padding:25px;text-align:center}
+    .results-panel{min-width:0}.results-toolbar{background:#fff;border:1px solid var(--border);box-shadow:var(--shadow);border-radius:16px;padding:14px 16px 15px;margin-bottom:15px}
+    .toolbar-main{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .tab-group{display:inline-flex;padding:4px;background:#f3f6f9;border-radius:11px;gap:3px;border:1px solid #e9edf1}.tab{background:transparent;border:0;padding:9px 13px;border-radius:8px;font-weight:760;color:#62718a;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}.tab.active{background:var(--navy);color:white;box-shadow:0 1px 4px #0002}.tab:hover:not(.active){background:#e7eef4}
+    .view-toggle{display:flex;align-items:center;gap:5px}.view-button{background:white;border:1px solid #dae4ee;border-radius:8px;padding:8px 9px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:670;color:#64748a}.view-button.active{color:var(--teal-dark);background:#e8f6f3;border-color:#bae3db}
+    .results-overview{padding:14px 1px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .results-title{font-weight:840;font-size:20px;letter-spacing:-.5px;color:var(--navy)}.results-subtitle{margin:4px 0 0;color:#748297;font-size:12px}.source-counts{display:flex;gap:7px;flex-wrap:wrap}
+    .count-pill{display:inline-block;font-size:11px;padding:5px 9px;border-radius:8px;background:#e9f5f1;color:#126d65;font-weight:700}.count-pill.historical{background:#eff2f6;color:#66768c}
+    .card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .listing-card{min-width:0;background:#fff;border:1px solid var(--border);border-radius:15px;overflow:hidden;box-shadow:var(--shadow);transition:transform .15s ease,box-shadow .15s ease}
+    .listing-card:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(14,36,64,.09)}
+    .listing-visual{height:151px;overflow:hidden;position:relative;background:linear-gradient(125deg,#a9d9db,#dbece9 48%,#eef6f7)}
+    .scene-1{background:linear-gradient(130deg,#c9d8e9,#e6eff5 45%,#a9c8d8)}.scene-2{background:linear-gradient(135deg,#d1dfd5,#eff2e5 52%,#b4d1c7)}.scene-3{background:linear-gradient(135deg,#bcd5d6,#eef4eb 52%,#d1dfd6)}.scene-4{background:linear-gradient(125deg,#c5cbdc,#e8eaf2 52%,#d4e5e8)}
+    .visual-sun{position:absolute;right:10%;top:15%;width:95px;height:95px;border-radius:50%;background:#fff8;filter:blur(8px)}
+    .visual-ground{position:absolute;left:-8%;right:-8%;bottom:-2px;height:21px;background:linear-gradient(180deg,#7599a4,#73939b);opacity:.3;transform:skew(-12deg)}
+    .building{position:absolute;bottom:10px;background:linear-gradient(120deg,rgba(255,255,255,.62),rgba(71,112,141,.36));border:1px solid #f5ffffa3;border-radius:3px 3px 0 0;box-shadow:8px 0 14px #294a6b12}
+    .building-a{left:14%;height:75px;width:22%;}.building-b{left:37%;height:105px;width:27%;}.building-c{left:66%;height:68px;width:19%}
+    .building:after{content:"";position:absolute;inset:12px 12px 6px;background-image:repeating-linear-gradient(90deg,transparent 0 9px,rgba(44,91,125,.24) 9px 15px,transparent 15px 22px),repeating-linear-gradient(0deg,transparent 0 14px,rgba(255,255,255,.66) 14px 17px,transparent 17px 21px);opacity:.77}
+    .scene-2 .building-b{height:91px}.scene-3 .building-a{height:90px}.scene-4 .building-c{height:108px}
+    .visual-shade{position:absolute;inset:0;background:linear-gradient(0deg,rgba(19,43,73,.24),transparent 60%);pointer-events:none}
+    .visual-badges{position:absolute;left:11px;top:10px;display:flex;flex-wrap:wrap;gap:6px;z-index:2;max-width:calc(100% - 65px)}
+    .status-badge,.source-badge{display:inline-flex;align-items:center;padding:5px 8px;border-radius:100px;font-weight:800;font-size:10px;line-height:1.3;background:#edf9f3;color:#14634e;box-shadow:0 1px 5px #0001}.status-badge.historical{background:#fff;color:#677588}.source-badge{background:#fff;color:#345573}
+    .save-btn{position:absolute;right:10px;top:9px;z-index:2;background:#fffc;border:1px solid #fff;border-radius:100%;height:32px;width:32px;display:grid;place-items:center;color:#365068;font-size:23px;line-height:1}.save-btn.saved{color:#c3475f}.save-btn:hover{background:#fff}
+    .visual-note{position:absolute;right:10px;bottom:9px;color:#fff;font-size:10px;font-weight:700;background:#17334980;padding:4px 7px;border-radius:7px;z-index:2}
+    .card-body{padding:15px}
+    .price-row{display:flex;align-items:center;justify-content:space-between;gap:8px}.rent-price{font-size:23px;font-weight:840;letter-spacing:-.75px;color:var(--navy);white-space:nowrap}.rent-price small{color:#67788d;font-size:12px;letter-spacing:0;font-weight:620}
+    .beds-badge{font-size:11px;color:#315272;font-weight:750;background:#eaf2f9;border-radius:7px;padding:4px 9px;white-space:nowrap}
+    .card-address{font-weight:730;color:#2c3e56;line-height:1.32;margin:10px 0 7px;min-height:36px;overflow-wrap:anywhere}.area-tag{display:inline-block;font-weight:700;font-size:11px;color:#286178;background:#e8f2f7;padding:3px 9px;border-radius:100px;max-width:100%;overflow-wrap:anywhere}
+    .card-facts{display:flex;flex-wrap:wrap;gap:9px;margin-top:10px;color:#52657a;font-size:11px;font-weight:650}.card-facts span{white-space:nowrap}.card-facts .no-fee{background:#def5ee;color:#087368;padding:2px 6px;border-radius:6px}
+    .card-foot{border-top:1px solid #e9eef3;padding-top:11px;margin-top:13px;display:flex;justify-content:space-between;gap:10px;align-items:center}.date-info{font-size:10px;color:#8190a2;max-width:58%;line-height:1.35}.card-links{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+    .map-jump{border:0;background:transparent;color:var(--teal-dark);font-size:11px;font-weight:750;padding:3px}.map-jump:hover{text-decoration:underline}
+    .card-link{display:inline-flex;align-items:center;gap:3px;color:var(--teal-dark);font-size:11px;font-weight:800;text-decoration:none;white-space:nowrap}.card-link:hover{text-decoration:underline}
+    .empty{padding:42px 22px;border:1px dashed #c5d5df;border-radius:15px;text-align:center;background:#fff;grid-column:1/-1;color:#64758a}.empty strong{display:block;font-size:16px;color:var(--navy);margin-bottom:7px}
+    .footer{margin:30px 0 8px;padding-top:19px;border-top:1px solid var(--border);font-size:11px;color:#788698;line-height:1.65}
+    .leaflet-container{font:inherit}.leaflet-popup-content{font:inherit;min-width:155px}.leaflet-popup-content strong{color:var(--navy)}.map-price-marker{height:13px;width:13px;border:2px solid #fff;background:#16898b;border-radius:50%;box-shadow:0 1px 5px #162a4377}.map-price-marker.historic{background:#8996a6}.map-price-marker.fort{border-color:#d9eee9}.map-price-marker.focus{background:#ffba5b;height:18px;width:18px}
+    @media(min-width:1600px){.card-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.listing-visual{height:165px}}
+    @media(max-width:1350px){.filter-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.fee-field{align-self:end}.action-btn{align-self:end}.workspace{grid-template-columns:minmax(290px,39%) minmax(0,1fr)}}
+    @media(max-width:1050px){.card-grid{grid-template-columns:1fr}.workspace{grid-template-columns:minmax(280px,42%) minmax(0,1fr)}.header-skyline{display:none}}
+    @media(max-width:760px){.container{width:min(100% - 24px,650px)}.masthead{min-height:90px}.brand-mark{width:45px;height:45px}.brand-mark svg{width:27px;height:27px}.brand h1{font-size:24px}.brand p{font-size:11px}.header-nav .nav-link:not(.active){padding:9px}.header-nav .nav-link:not(.active) .nav-label{display:none}.nav-link{padding:9px}.nav-link .fav-bubble{display:none}.overview{padding:11px 0 15px;gap:8px}.chip{padding:8px 11px;font-size:11px}.page-main{padding-top:13px}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.filter-panel{padding:14px}.filter-meta{display:none}.workspace{grid-template-columns:1fr}.map-panel{position:static}.map-panel #map{min-height:320px;height:360px}.card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.listing-visual{height:135px}}
+    @media(max-width:560px){.masthead{gap:10px}.brand h1{font-size:21px}.brand-mark{width:40px;height:40px}.brand{gap:10px}.header-nav .nav-link.active{padding:8px 9px}.header-nav .nav-link .nav-label{display:none}.chip{width:calc(50% - 4px);justify-content:flex-start}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-grid .field:first-child{grid-column:1/-1}.filter-grid .fee-field{grid-column:1}.filter-grid .action-btn{grid-column:2}.under-filter{align-items:flex-start}.card-grid{grid-template-columns:1fr}.listing-visual{height:160px}.tab{padding:8px 10px;font-size:12px}.view-button{font-size:0;gap:0}.view-button svg{width:17px;height:17px}.results-title{font-size:18px}.results-toolbar{padding:12px}.map-panel #map{height:310px;min-height:310px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.listing-card{transition:none}}
+  </style>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m16 16 5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.8a5.5 5.5 0 0 0-7.8 0L12 5.9l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.4a5.5 5.5 0 0 0 0-7.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Zm6-3v15m6-12v15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 9V5a2 2 0 0 1 2-2h13" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M16 13h5v4h-5a2 2 0 0 1 0-4Z" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-bed" viewBox="0 0 24 24"><path d="M3 19V5m18 14v-8a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3v8M3 15h18M6 15v-4h6v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7l10-5Zm-10 10 10 5 10-5M2 17l10 5 10-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M9 4v6m6 4v6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 9v5m0 3v.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6m-10 4L20 4M20 14v6H4V4h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  </svg>
+  <header class="site-header">
+    <div class="header-skyline" aria-hidden="true"><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span></div>
+    <div class="container">
+      <div class="masthead">
+        <div class="brand"><span class="brand-mark"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M3 32h30M7 32V16h7v16m6 0V8h8v24M14 32V23h6v9M24 8V3M9 20h3m-3 5h3m12-12h2m-2 6h2m-2 6h2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><h1>NYC Apartment Finder</h1><p>Rental research near Columbia University &amp; Fort Lee</p></div></div>
+        <nav class="header-nav" aria-label="Main navigation"><a href="#filters" class="nav-link active"><svg><use href="#i-search"/></svg><span class="nav-label">Explore rentals</span></a><a href="#results" class="nav-link" id="header-favorites"><svg><use href="#i-heart"/></svg><span class="nav-label">Saved favorites</span><span class="fav-bubble" id="fav-total">0</span></a></nav>
+      </div>
+      <div class="overview" aria-label="Search preferences">
+        <div class="chip"><svg><use href="#i-wallet"/></svg> Max base rent <b>$3,000</b></div>
+        <div class="chip"><svg><use href="#i-bed"/></svg> Studio + <b>1 bedroom</b></div>
+        <div class="chip"><svg><use href="#i-pin"/></svg> <b>9</b> search areas</div>
+        <div class="chip"><svg><use href="#i-layers"/></svg> <b>RentCast + FirstMover</b></div>
+      </div>
+    </div>
+  </header>
+  <main class="container page-main">
+    <section class="filter-panel" id="filters" aria-label="Search filters">
+      <div class="filter-title"><div class="filter-heading"><svg><use href="#i-sliders"/></svg> Refine your search</div><span class="filter-meta">Automatic source updates · August 2027 move goal</span></div>
+      <div class="filter-grid">
+        <div class="field"><label for="source">Listing source</label><select id="source"><option value="rentcast">RentCast · recently checked</option><option value="historical">FirstMover · historical</option><option value="both">Both data sources</option></select></div>
+        <div class="field"><label for="area">Neighborhood</label><select id="area"><option value="">All 9 areas</option></select></div>
+        <div class="field"><label for="rent">Max base rent ($)</label><input id="rent" type="number" min="500" max="3000" step="100" value="3000" inputmode="numeric"></div>
+        <div class="field"><label for="beds">Apartment type</label><select id="beds"><option value="all">Studio + 1 bedroom</option><option value="0">Studio only</option><option value="1">1 bedroom only</option></select></div>
+        <div class="field"><label for="sort">Sort</label><select id="sort"><option value="new">Newest advertised</option><option value="low">Rent: low to high</option><option value="high">Rent: high to low</option><option value="size">Largest floor area</option></select></div>
+        <div class="field fee-field"><label for="noFee">Broker fee</label><label class="fee-check"><input type="checkbox" id="noFee"><span>Reported no-fee</span></label></div>
+        <button class="action-btn" id="apply" type="button"><svg><use href="#i-search"/></svg> Apply filters</button>
+      </div>
+    </section>
+    <div class="under-filter"><div class="disclaimer"><svg><use href="#i-alert"/></svg><span id="source-note">RentCast activity is provider-reported at the last data check, not independently confirmed. Check rent, fees and availability with the landlord or agent.</span></div><button class="reset-btn" id="reset" type="button">Reset filters</button></div>
+    <div class="workspace" id="workspace">
+      <aside class="map-panel" aria-label="Apartment locations"><div class="map-title"><span class="panel-heading">Explore the map</span><span class="map-caption">Columbia · Upper Manhattan · Fort Lee</span></div><div id="map" role="region" aria-label="Interactive rental listing map"></div><div class="map-footer"><span><i class="legend-dot school"></i> Columbia campus</span><span><i class="legend-dot"></i> RentCast</span><span><i class="legend-dot historic"></i> Historical</span></div></aside>
+      <section class="results-panel" id="results" aria-label="Search results">
+        <div class="results-toolbar"><div class="toolbar-main"><div class="tab-group" role="group" aria-label="Listing selection"><button type="button" class="tab active" id="all" aria-pressed="true">All listings <span id="all-total">(0)</span></button><button type="button" class="tab" id="saved" aria-pressed="false">♡ Saved <span id="saved-total">(0)</span></button></div><div class="view-toggle" role="group" aria-label="Display mode"><button type="button" class="view-button active" id="split-view" aria-label="Show map and listing cards" aria-pressed="true"><svg><use href="#i-map"/></svg> Map + cards</button><button type="button" class="view-button" id="list-view" aria-label="Show listing cards only" aria-pressed="false"><svg><use href="#i-list"/></svg> Cards only</button></div></div><div class="results-overview"><div><div class="results-title" id="count" role="status">Loading apartments…</div><p class="results-subtitle" id="snapshot">Fetching the latest stored datasets.</p></div><div class="source-counts" id="source-counts"></div></div></div>
+        <div class="card-grid" id="cards" aria-live="polite"></div>
+      </section>
+    </div>
+    <footer class="footer">Research tool only. RentCast listings are provider-reported active at the last check, not guaranteed available now; FirstMover listings are historical. Asking base rents may exclude additional charges, and Manhattan neighborhood labels are approximations. This site is not affiliated with Columbia University, RentCast, FirstMover, StreetEasy or Zillow. <a href="https://www.firstmovernyc.com/open-data" target="_blank" rel="noopener noreferrer">FirstMover Open Data (CC0)</a>. Favorites stay in this browser; some external apartment searches may not locate an exact listing.</footer>
+  </main>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    "use strict";
+    const AREAS=["Morningside Heights","Manhattan Valley","Manhattanville","Hamilton Heights","South Harlem","Northern Upper West Side","Central Harlem","Washington Heights","Fort Lee"];
+    const $=s=>document.querySelector(s);
+    const cards=$("#cards"), count=$("#count"), summary=$("#snapshot"), workspace=$("#workspace");
+    for (const area of AREAS) {const o=document.createElement("option");o.value=o.textContent=area;$("#area").append(o);}
+    let listings=[],historical=[],rentcast=[],showSaved=false,map=null,markers=null,markerIndex=new Map(),feedMetadata={};
+    let favorites=new Set();
+    try{const stored=JSON.parse(localStorage.getItem("nyc-apartment-favorites")||"[]");if(Array.isArray(stored))favorites=new Set(stored.map(String));}catch(e){console.warn("Favorites unavailable",e);}
+    const svg=(name,cls="")=>{const el=document.createElementNS("http://www.w3.org/2000/svg","svg");if(cls)el.setAttribute("class",cls);el.setAttribute("aria-hidden","true");const use=document.createElementNS("http://www.w3.org/2000/svg","use");use.setAttribute("href","#i-"+name);el.append(use);return el;};
+    const text=(tag,cls,val)=>{const e=document.createElement(tag);if(cls)e.className=cls;e.textContent=val;return e;};
+    const money=n=>"$"+Number(n||0).toLocaleString("en-US");
+    const safeUrl=s=>{try{const u=new URL(String(s));return u.protocol==="https:"?u.href:null;}catch{return null;}};
+    const dateOnly=v=>{const s=String(v||"");return /^\d{4}-\d{2}-\d{2}/.test(s)?s.slice(0,10):"not provided";};
+    const freshDate=x=>String(x.listed_at||x.last_seen||"");
+    const feeReported=x=>[true,1,"1","yes","true"].includes(typeof x.no_fee_at_posting==="string"?x.no_fee_at_posting.toLowerCase():x.no_fee_at_posting);
+    function addPinMap(){
+      if(typeof L==="undefined"){const el=$("#map");el.classList.add("map-empty");el.textContent="Map temporarily unavailable. You can still browse the cards.";return;}
+      try{
+        map=L.map("map",{scrollWheelZoom:false}).setView([40.819,-73.967],12);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',maxZoom:19}).addTo(map);
+        markers=L.layerGroup().addTo(map);
+        L.circleMarker([40.8075,-73.9626],{radius:9,color:"#fff",weight:3,fillColor:"#132b49",fillOpacity:1}).addTo(map).bindPopup("Columbia University · Morningside campus");
+      }catch(e){console.warn("Map unavailable",e);map=null;markers=null;$("#map").textContent="Map temporarily unavailable. Listings are still available.";}
+    }
+    addPinMap();
+    function saveFavorite(id){const key=String(id);if(favorites.has(key))favorites.delete(key);else favorites.add(key);try{localStorage.setItem("nyc-apartment-favorites",JSON.stringify([...favorites]));}catch(e){console.warn("Could not save favorite",e);}render();}
+    function setSavedMode(saved){showSaved=saved;$("#all").classList.toggle("active",!saved);$("#saved").classList.toggle("active",saved);$("#all").setAttribute("aria-pressed",String(!saved));$("#saved").setAttribute("aria-pressed",String(saved));render();}
+    function setListOnly(only){workspace.classList.toggle("list-only",only);$("#list-view").classList.toggle("active",only);$("#split-view").classList.toggle("active",!only);$("#list-view").setAttribute("aria-pressed",String(only));$("#split-view").setAttribute("aria-pressed",String(!only));if(!only&&map)setTimeout(()=>map.invalidateSize(),10);}
+    function filtersMatch(x){
+      const s=$("#source").value,b=$("#beds").value,a=$("#area").value,cap=Math.min(3000,Math.max(500,Number($("#rent").value)||3000));
+      return (s==="both"||x.source_kind===s)&&Number(x.rent)<=cap&&(!a||x.area===a)&&(b==="all"||Number(x.bedrooms)===Number(b))&&(!$("#noFee").checked||feeReported(x));
+    }
+    function listForView(){const sort=$("#sort").value;let data=listings.filter(filtersMatch);data.sort((a,b)=>sort==="low"?Number(a.rent)-Number(b.rent):sort==="high"?Number(b.rent)-Number(a.rent):sort==="size"?Number(b.sqft||0)-Number(a.sqft||0):freshDate(b).localeCompare(freshDate(a)));return data;}
+    function showMarker(id){const found=markerIndex.get(String(id));if(!map||!found)return;setListOnly(false);setTimeout(()=>{map.invalidateSize();map.setView(found.getLatLng(),Math.max(map.getZoom(),15),{animate:true});found.openPopup();if(window.matchMedia("(max-width:760px)").matches)$("#map").scrollIntoView({behavior:"smooth",block:"center"});},25);}
+    function listingCard(x,idx){
+      const card=text("article","listing-card","");
+      const visual=text("div","listing-visual scene-"+(AREAS.indexOf(x.area)%4+1),"");
+      for(const c of ["visual-sun","visual-ground","building building-a","building building-b","building building-c","visual-shade"])visual.append(text("span",c,""));
+      const badges=text("div","visual-badges","");
+      badges.append(text("span","status-badge"+(x.source_kind==="historical"?" historical":""),x.source_kind==="rentcast"?"Provider-listed active":"Historical record"));
+      badges.append(text("span","source-badge",x.source_kind==="rentcast"?"RentCast":"FirstMover"));
+      visual.append(badges);
+      const save=text("button","save-btn"+(favorites.has(String(x.id))?" saved":""),favorites.has(String(x.id))?"♥":"♡");save.type="button";save.setAttribute("aria-label",favorites.has(String(x.id))?"Remove from favorites":"Save to favorites");save.setAttribute("aria-pressed",String(favorites.has(String(x.id))));save.addEventListener("click",()=>saveFavorite(x.id));visual.append(save);
+      visual.append(text("div","visual-note","Illustration · photo unavailable"));card.append(visual);
+      const body=text("div","card-body","");const priceRow=text("div","price-row","");
+      const price=text("div","rent-price",money(x.rent));price.append(text("small",""," / month"));priceRow.append(price,text("span","beds-badge",Number(x.bedrooms)===0?"Studio":"1 bedroom"));body.append(priceRow);
+      body.append(text("div","card-address",(x.address||"Address not provided")+(x.unit?" · Unit "+x.unit:"")),text("span","area-tag",x.area||"Area not listed"));
+      const facts=text("div","card-facts","");if(x.bathrooms!==null&&x.bathrooms!==undefined&&x.bathrooms!=="")facts.append(text("span","",Number(x.bathrooms)+" bath"+(Number(x.bathrooms)===1?"":"s")));if(Number(x.sqft)>0)facts.append(text("span","",Math.round(Number(x.sqft)).toLocaleString()+" sq ft"));if(feeReported(x))facts.append(text("span","no-fee","✓ No fee reported"));body.append(facts);
+      const foot=text("div","card-foot","");foot.append(text("span","date-info",x.source_kind==="rentcast"?"Provider last saw: "+dateOnly(x.last_seen):"First advertised: "+dateOnly(x.listed_at)));
+      const links=text("div","card-links","");const loc=Number(x.latitude),lng=Number(x.longitude);if(Number.isFinite(loc)&&Number.isFinite(lng)&&x.latitude!=null&&x.longitude!=null){const jump=text("button","map-jump","Map");jump.type="button";jump.setAttribute("aria-label","Show "+(x.address||"this apartment")+" on map");jump.addEventListener("click",()=>showMarker(x.id));links.append(jump);}
+      const url=safeUrl(x.url);if(url){const a=text("a","card-link",x.source_kind==="rentcast"?"Search address":"Open listing");a.href=url;a.target="_blank";a.rel="noopener noreferrer";a.append(svg("external"));a.setAttribute("aria-label",x.source_kind==="rentcast"?"Search the web for this address":"Open original listing in a new tab");links.append(a);}else links.append(text("span","date-info","Link unavailable"));foot.append(links);body.append(foot);card.append(body);return card;
+    }
+    function refreshPins(list){if(!map||!markers)return;markers.clearLayers();markerIndex.clear();const coords=[];
+      for(const x of list){const lat=Number(x.latitude),lng=Number(x.longitude);if(x.latitude==null||x.longitude==null||!Number.isFinite(lat)||!Number.isFinite(lng)||lat<40||lat>42||lng< -75||lng> -72)continue;
+        const dot=text("div","map-price-marker"+(x.source_kind==="historical"?" historic":"")+(x.area==="Fort Lee"?" fort":""),"");
+        const marker=L.marker([lat,lng],{icon:L.divIcon({className:"",html:dot.outerHTML,iconSize:[16,16],iconAnchor:[8,8]})});
+        const pop=text("div","","");pop.append(text("strong","",money(x.rent)+" / month"),text("div","",(Number(x.bedrooms)===0?"Studio":"1 bedroom")+" · "+(x.area||"Unknown area")),text("div","",x.address||"Address not provided"),text("div","",x.source_kind==="rentcast"?"Provider-listed active at last check":"Historical advertisement"));
+        marker.bindPopup(pop);marker.addTo(markers);markerIndex.set(String(x.id),marker);coords.push([lat,lng]);
+      }
+      if(coords.length){map.fitBounds(L.latLngBounds(coords).pad(.12),{maxZoom:14,animate:false});}else map.setView([40.819,-73.967],12,{animate:false});
+    }
+    function render(){
+      const all=listForView(),saved=all.filter(x=>favorites.has(String(x.id))),matching=showSaved?saved:all;const shown=matching.slice(0,150);
+      $("#fav-total").textContent=String(favorites.size);$("#all-total").textContent="("+all.length+")";$("#saved-total").textContent="("+saved.length+")";
+      count.textContent=matching.length.toLocaleString()+" matching listing"+(matching.length===1?"":"s")+(matching.length>150?" · showing first 150":"");
+      const rcCount=matching.filter(x=>x.source_kind==="rentcast").length;const histCount=matching.length-rcCount;
+      const labels=$("#source-counts");labels.replaceChildren();if(rcCount)labels.append(text("span","count-pill",rcCount+" RentCast"));if(histCount)labels.append(text("span","count-pill historical",histCount+" historical"));
+      const rcChecked=dateOnly(feedMetadata.rcChecked),fmMonth=feedMetadata.fmMonth||"unknown";const mode=$("#source").value;
+      summary.textContent=(mode==="historical"?"FirstMover snapshot "+fmMonth+" · not live":mode==="rentcast"?"RentCast checked "+rcChecked+" · provider-reported active":"RentCast checked "+rcChecked+" · FirstMover "+fmMonth);
+      $("#source-note").textContent=mode==="historical"?"FirstMover records reflect initial advertisements, not current availability or updated prices. Verify listing status independently.":mode==="rentcast"?"RentCast marked these listings active at its last check; availability is not guaranteed. Manhattan neighborhood boundaries are approximate.":"Sources have different freshness: RentCast reflects a recent provider check, while FirstMover records are historical. Verify each separately.";
+      cards.replaceChildren();if(!shown.length){const empty=text("div","empty","");empty.append(text("strong","",showSaved?"No saved apartments match these filters":"No matching listings"),text("div","",showSaved?"Save an apartment with the heart icon or loosen your filters.":"Try another neighborhood or source. If you've selected 'no-fee', note that many listings do not report fee status."));cards.append(empty);}else{const frag=document.createDocumentFragment();shown.forEach((x,i)=>frag.append(listingCard(x,i)));cards.append(frag);}refreshPins(shown);
+    }
+    for(const id of ["source","area","rent","beds","sort","noFee"])$("#"+id).addEventListener("change",render);
+    $("#rent").addEventListener("blur",()=>{const n=Math.round(Number($("#rent").value)||3000);$("#rent").value=String(Math.min(3000,Math.max(500,n)));render();});
+    $("#apply").addEventListener("click",()=>{$("#rent").value=String(Math.min(3000,Math.max(500,Math.round(Number($("#rent").value)||3000))));render();$("#results").scrollIntoView({behavior:"smooth",block:"start"});});
+    $("#reset").addEventListener("click",()=>{$("#source").value=rentcast.length?"rentcast":"historical";$("#area").value="";$("#rent").value="3000";$("#beds").value="all";$("#sort").value="new";$("#noFee").checked=false;render();});
+    $("#all").addEventListener("click",()=>setSavedMode(false));$("#saved").addEventListener("click",()=>setSavedMode(true));
+    $("#header-favorites").addEventListener("click",()=>setSavedMode(true));
+    $("#split-view").addEventListener("click",()=>setListOnly(false));$("#list-view").addEventListener("click",()=>setListOnly(true));
+    async function getJSON(path){try{const r=await fetch(path,{cache:"no-store"});return r.ok?await r.json():null;}catch(e){console.warn("Unable to load data",path,e);return null;}}
+    Promise.all([getJSON("./data/listings.json"),getJSON("./data/rentcast.json")]).then(([h,r])=>{
+      historical=Array.isArray(h?.listings)?h.listings.map(x=>({...x,source_kind:"historical"})):[];
+      rentcast=Array.isArray(r?.listings)?r.listings.map(x=>({...x,source_kind:"rentcast"})):[];
+      listings=[...rentcast,...historical];feedMetadata={rcChecked:r?.checked_at_utc||"",fmMonth:h?.data_month||""};
+      $("#source").value=rentcast.length?"rentcast":"historical";render();
+    }).catch(e=>{console.error("Could not display listings",e);count.textContent="Listings unavailable";summary.textContent="Please check the refresh workflow.";});
+  </script>
+</body>
+</html>
