@@ -9,7 +9,7 @@ import re
 ROOM_SCOPE = re.compile(
     r"\b(?:private\s+room|single\s+room|room\s+for\s+rent|room\s+available|"
     r"bedroom\s+for\s+rent|rent(?:ing)?\s+(?:a\s+)?(?:single\s+|private\s+)?room|"
-    r"room\s+in\s+(?:a\s+|an\s+)?(?:shared\s+)?(?:apartment|house|home|flat)|"
+    r"(?:room|bedroom)\s+in\s+(?:a\s+|an\s+)?(?:(?:\\d+|two|three|four)[-\\s]+bed(?:room)?[-\\s]+)?(?:shared\s+)?(?:apartment|house|home|flat)|"
     r"shared\s+(?:apartment|flat|house|housing|bedroom|bathroom|kitchen|living|space)|"
     r"roommates?\s+(?:wanted|needed|welcome)|looking\s+for\s+(?:a\s+)?roommate|"
     r"co[- ]?living|room\s?share|house\s?share|bed\s?space|per\s+bedroom|"
@@ -42,7 +42,7 @@ def room_rental_reason(row):
     for field in ("unit_type", "unitType", "rental_type", "listingType", "propertyType",
                   "building_type", "source_type", "listing_type"):
         value = str(row.get(field) or "").strip()
-        if ROOM_CLASS.search(value) or ROOM_UNIT.search(value):
+        if value.lower() in ("room", "bedroom", "shared", "room share", "room rental", "co-living", "coliving") or ROOM_CLASS.search(value) or ROOM_UNIT.search(value):
             return "listing classified as room or shared accommodation"
     for field in ("title", "headline", "description", "address", "formattedAddress", "street"):
         if ROOM_SCOPE.search(str(row.get(field) or "")):
