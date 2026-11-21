@@ -23,6 +23,29 @@ NTA_TO_AREA = {
     "MN1202": "Washington Heights",
 }
 
+# Approximate south edge of the George Washington Bridge approach.
+# Reference points on the approach grid, near Broadway at W178/179 Street
+# (40.848624, -73.937370) and Fort Washington Avenue at W179 Street
+# (40.849438, -73.939025). These define a sloped street-grid cutoff,
+# not an official surveyed bridge boundary or a borough/neighborhood border.
+GWB_EAST_LON, GWB_EAST_LAT = -73.937370, 40.848624
+GWB_WEST_LON, GWB_WEST_LAT = -73.939025, 40.849438
+GWB_POLICY = "south-of-george-washington-bridge-approach-v1"
+
+def bridge_cutoff_latitude(longitude):
+    longitude = float(longitude)
+    return GWB_EAST_LAT + (longitude - GWB_EAST_LON) * (
+        (GWB_WEST_LAT - GWB_EAST_LAT) / (GWB_WEST_LON - GWB_EAST_LON)
+    )
+
+def south_of_gwb(latitude, longitude):
+    """True only for coordinates south of, or on, the sloped GWB approach line."""
+    try:
+        lat, lon = float(latitude), float(longitude)
+    except (TypeError, ValueError):
+        return False
+    return math.isfinite(lat) and math.isfinite(lon) and lat <= bridge_cutoff_latitude(lon)
+
 @lru_cache(maxsize=1)
 def polygons():
     data = json.loads(BOUNDARIES.read_text(encoding="utf-8"))
@@ -66,6 +89,8 @@ def classify_area(latitude, longitude, state="NY"):
     except (TypeError, ValueError):
         return None
     if not (math.isfinite(lat) and math.isfinite(lon) and 40.77 <= lat <= 40.88 and -74.01 <= lon <= -73.90):
+        return None
+    if not south_of_gwb(lat, lon):
         return None
     for feature in polygons():
         if not inside_feature(lon, lat, feature["geometry"]):
