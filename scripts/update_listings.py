@@ -12,7 +12,7 @@ import urllib.error
 from datetime import datetime, timezone
 from pathlib import Path
 from scripts.unit_filter import room_rental_reason
-from scripts.areas import classify_area
+from scripts.areas import classify_area, GWB_POLICY
 
 API = "https://api.github.com/repos/benfwalla/firstmover-open-data-project/contents/public/data"
 RAW = "https://raw.githubusercontent.com/benfwalla/firstmover-open-data-project/main/public/data/"
@@ -125,6 +125,7 @@ def main():
     payload = {
         "source": "FirstMover Open Data (CC0)",
         "geography_source": "NYC DCP 2020 NTA polygons; smaller local area labels approximated",
+        "geographic_policy": GWB_POLICY,
         "source_url": "https://www.firstmovernyc.com/open-data",
         "data_month": month[:-4],
         "rent_min": MIN_RENT,
@@ -133,7 +134,7 @@ def main():
         "status": "historical_snapshot_unverified",
         "notice": "These were advertised when first posted. They may no longer be available and prices may have changed. Not a live inventory.",
         "photo_notice": "Photo IDs are source metadata only. This site does not reproduce original listing photographs without permission; visit the original listing for pictures.",
-        "coverage_note": "Geographic inclusion uses NYC DCP 2020 NTA statistical polygons. Northern Upper West Side versus Manhattan Valley is a custom approximation. Only the eight selected Manhattan search areas are included.",
+        "coverage_note": "Geographic inclusion uses NYC DCP 2020 NTA statistical polygons. Northern Upper West Side versus Manhattan Valley is a custom approximation. Only the eight selected Manhattan search areas SOUTH of the approximate George Washington Bridge approach are included.",
         "unit_policy": "Room rentals and co-living listings are removed when identifiable from source fields; verify entire-unit and private kitchen/bathroom with the original listing.",
         "rooms_excluded": filtered_rooms,
         "listings": cleaned
