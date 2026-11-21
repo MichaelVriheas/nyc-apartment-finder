@@ -63,7 +63,7 @@
     .view-toggle{display:flex;align-items:center;gap:5px}.view-button{background:white;border:1px solid #dae4ee;border-radius:8px;padding:8px 9px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:670;color:#64748a}.view-button.active{color:var(--teal-dark);background:#e8f6f3;border-color:#bae3db}
     .results-overview{padding:14px 1px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
     .results-title{font-weight:840;font-size:20px;letter-spacing:-.5px;color:var(--navy)}.results-subtitle{margin:4px 0 0;color:#748297;font-size:12px}.source-counts{display:flex;gap:7px;flex-wrap:wrap}
-    .count-pill{display:inline-block;font-size:11px;padding:5px 9px;border-radius:8px;background:#e9f5f1;color:#126d65;font-weight:700}.count-pill.historical{background:#eff2f6;color:#66768c}
+    .count-pill{display:inline-block;font-size:11px;padding:5px 9px;border-radius:8px;background:#e9f5f1;color:#126d65;font-weight:700}.count-pill.historical{background:#eff2f6;color:#66768c}.count-pill.coverage-alert{background:#fff4df;color:#92611b}
     .change-panel{background:#fff;border:1px solid var(--border);border-radius:15px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:15px;display:flex;justify-content:space-between;align-items:center;gap:13px;flex-wrap:wrap}
     .change-panel-title{font-weight:800;color:var(--navy);font-size:14px}
     .change-panel-text{font-size:11px;color:var(--muted);margin-top:4px;max-width:520px}
@@ -339,7 +339,7 @@
       $("#fav-total").textContent=String(favorites.size);$("#all-total").textContent="("+all.length+")";$("#saved-total").textContent="("+saved.length+")";
       count.textContent=matching.length.toLocaleString()+" matching listing"+(matching.length===1?"":"s")+(matching.length>150?" · showing first 150":"");
       const rcCount=matching.filter(x=>x.source_kind==="rentcast").length;const histCount=matching.length-rcCount;
-      const labels=$("#source-counts");labels.replaceChildren();if(rcCount)labels.append(text("span","count-pill",rcCount+" RentCast"));if(histCount)labels.append(text("span","count-pill historical",histCount+" historical"));
+      const labels=$("#source-counts");labels.replaceChildren();if(rcCount)labels.append(text("span","count-pill",rcCount+" RentCast"));if(histCount)labels.append(text("span","count-pill historical",histCount+" historical"));if(rcCount&&feedMetadata.rcResponseLimit)labels.append(text("span","count-pill coverage-alert","⚠ RentCast sample capped"));
       const rcChecked=dateOnly(feedMetadata.rcChecked),fmMonth=feedMetadata.fmMonth||"unknown";const mode=$("#source").value;
       summary.textContent=(mode==="historical"?"FirstMover snapshot "+fmMonth+" · not live":mode==="rentcast"?"RentCast checked "+rcChecked+" · provider-reported active":"RentCast checked "+rcChecked+" · FirstMover "+fmMonth);
       $("#source-note").textContent=mode==="historical"?"FirstMover listings are historical. The geographic filter uses 2020 NYC NTA areas, with approximate smaller-neighborhood labels. Confirm any private-unit lease independently.":mode==="rentcast"?"RentCast is provider-reported, not guaranteed available. NYC 2020 NTA boundaries improve Manhattan inclusion, but smaller neighborhood labels are approximate. Verify the private-unit lease.":"Sources have different freshness. NYC 2020 NTA geography helps exclude other boroughs, but smaller neighborhood labels and private-unit status still require verification.";
@@ -361,7 +361,7 @@
       approvedPhotos=p&&p.photos&&typeof p.photos==="object"&&!Array.isArray(p.photos)?p.photos:{};
       historical=Array.isArray(h?.listings)?h.listings.map(x=>({...x,source_kind:"historical"})):[];
       rentcast=Array.isArray(r?.listings)?r.listings.map(x=>({...x,source_kind:"rentcast"})):[];
-      listings=[...rentcast,...historical];feedMetadata={rcChecked:r?.checked_at_utc||"",fmMonth:h?.data_month||"",comparison:r?.comparison||null};
+      listings=[...rentcast,...historical];feedMetadata={rcChecked:r?.checked_at_utc||"",fmMonth:h?.data_month||"",comparison:r?.comparison||null,rcResponseLimit:Boolean(r?.search_response_limit_hit||Object.values(r?.query_counts||{}).some(v=>Number(v?.returned)>=500))};
       $("#source").value=rentcast.length?"rentcast":"historical";render();
     }).catch(e=>{console.error("Could not display listings",e);count.textContent="Listings unavailable";summary.textContent="Please check the refresh workflow.";});
   </script>
