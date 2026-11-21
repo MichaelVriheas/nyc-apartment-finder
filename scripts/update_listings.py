@@ -61,6 +61,25 @@ def area(row):
     # Generic Harlem may be South or Central: do not guess.
     return None
 
+def photo_identifiers(row):
+    """Preserve FirstMover's published identifiers only; do not download/serve images.
+
+    Source photo IDs are metadata, not a grant to reproduce StreetEasy photos.
+    """
+    raw = str(row.get("photo_ids") or "")
+    identifiers = []
+    for item in raw.split(","):
+        token = item.strip()
+        if token and len(token) <= 128 and re.fullmatch(r"[A-Za-z0-9_-]+", token):
+            if token not in identifiers:
+                identifiers.append(token)
+        if len(identifiers) >= 12:
+            break
+    lead = str(row.get("lead_photo_id") or "").strip()
+    if lead and (len(lead) > 128 or not re.fullmatch(r"[A-Za-z0-9_-]+", lead)):
+        lead = ""
+    return lead, identifiers
+
 def main():
     # Use predictable direct public CSV URLs, bypassing GitHub API directory
     # rate limits. Recent monthly data may not be published until next month.
@@ -93,6 +112,8 @@ def main():
         if not url.startswith("https://"):
             continue
         identifier = str(row.get("id") or url)
+        lead_photo_id, photo_ids = photo_identifiers(row)
+        media_assets = number(row.get("media_asset_count"))
         listings[identifier] = {
             "id": identifier,
             "area": place,
@@ -107,6 +128,10 @@ def main():
             "listed_at": (row.get("created_at_utc") or "").strip(),
             "available_date_at_posting": (row.get("available_date") or "").strip(),
             "no_fee_at_posting": (row.get("no_fee") or "").strip(),
+            "lead_photo_id": lead_photo_id,
+            "photo_ids": photo_ids,
+            "media_asset_count_at_posting": int(media_assets) if media_assets is not None and media_assets >= 0 else None,
+            "photos_usage": "references_only_not_licensed_for_public_display",
             "url": url
         }
     cleaned = sorted(listings.values(), key=lambda x: x["listed_at"], reverse=True)[:2500]
@@ -117,6 +142,7 @@ def main():
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "status": "historical_snapshot_unverified",
         "notice": "These were advertised when first posted. They may no longer be available and prices may have changed. Not a live inventory.",
+        "photo_notice": "Photo IDs are source metadata only. This site does not reproduce original listing photographs without permission; visit the original listing for pictures.",
         "coverage_note": "Neighborhood names follow published tags. Northern Upper West Side uses a geographic latitude approximation. Fort Lee may have no rows in this NYC-focused dataset.",
         "listings": cleaned
     }
