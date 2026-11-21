@@ -90,6 +90,12 @@ class RoomRentalFilteringTests(unittest.TestCase):
     def test_coliving_is_filtered(self):
         self.assertIsNotNone(room_rental_reason({"description":"Modern co-living with shared kitchen and bathrooms"}))
 
+    def test_room_in_three_bedroom_apartment_is_filtered(self):
+        self.assertIsNotNone(room_rental_reason({"title": "Furnished room in a 3-bedroom apartment"}))
+
+    def test_provider_room_type_is_filtered(self):
+        self.assertIsNotNone(room_rental_reason({"listingType": "Room"}))
+
     def test_unit_room_number_is_filtered(self):
         self.assertIsNotNone(room_rental_reason({"addressLine2":"Room 2B", "bedrooms":1}))
 
