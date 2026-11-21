@@ -66,6 +66,8 @@ jobs:
           fi
 
       - name: Import latest public FirstMover historical snapshot
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: python scripts/update_listings.py
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
