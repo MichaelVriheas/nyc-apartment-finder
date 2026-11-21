@@ -33,6 +33,14 @@ To keep the old snapshot from showing obviously shared rentals, the frontend als
 
 For location comparison the cards also show the **straight-line distance** from the listed coordinates to Columbia's Morningside campus, plus a sort option. **Walking route** and **Transit route** links open Google Maps from each listing to Columbia's Broadway/116th Street entrance. Google Maps calculates live, route-specific travel times when opened; this website does not store those times or guarantee future (August 2027) service. Routing links use [free Maps URLs](https://developers.google.com/maps/documentation/urls/get-started), **not a billable Google Maps Directions API key**.
 
+## Side-by-side apartment comparisons
+
+Select **Compare +** on up to **three** listing cards. Once two listings are selected, use the bottom comparison dock's **Compare side by side** button to review their most recent stored data in a responsive table. Compare choices persist as listing IDs in the **same browser** using `localStorage`, independently of saved favorites. They continue working across source, neighborhood, and favorite filters; if a property disappears from the refreshed feeds, its comparison selection is removed rather than retaining outdated rental figures. Use the dock or modal's Remove controls to change a selection, or Clear to reset.
+
+The comparison table includes monthly and annualized **advertised base rent** (annual is simply monthly × 12, not an all-in cost), reported floor area and base-rent-per-square-foot when available, bedrooms, bathrooms, approximate neighborhood, reported fee status, whether a self-contained unit has been independently verified (currently **not verified**), listing source and freshness, and **straight-line** Columbia distance. When there is complete comparable numerical data for a row, lowest values are highlighted. Missing fields are shown as **Not reported**, never guessed.
+
+For real walking or subway routes, the table links out to Google Maps for current directions and travel times; it **does not estimate, store or compare future commute times** or make any additional API calls. RentCast statuses are provider-reported, and FirstMover entries are historical advertisements, so a side-by-side comparison does not prove current availability or lease terms.
+
 ## Geographic search coverage and change-tracking reset
 
 Previously a single 3.7-mile circular query reached the RentCast 500-result cap, and simple latitude/longitude rectangles incorrectly categorized Bronx addresses as South Harlem. The saved November 21, 2026 snapshot was **reclassified without making API requests**, reducing the stored RentCast records from 114 to 74 target-area matches. This removes wrong-borough and non-target neighborhood records; it **does not establish that 74 is a complete list**.
@@ -66,7 +74,7 @@ The key is stored only in a GitHub Actions secret called `RENTCAST_API_KEY`. Nev
 
 ## Files
 
-- `site/index.html`: searchable dashboard, map, source selector and local favorites
+- `site/index.html`: searchable dashboard, map, source selector, local favorites and side-by-side comparison UI
 - `scripts/update_listings.py`: FirstMover monthly historical-data importer
 - `scripts/areas.py` and `site/data/manhattan-nta-areas.geojson`: NTA polygon matching and source geometry (NYC DCP)
 - `scripts/fetch_rentcast.py`: RentCast API importer, filtering and budget reservation
