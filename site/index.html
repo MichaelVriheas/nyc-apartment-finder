@@ -117,6 +117,28 @@
     .empty{padding:42px 22px;border:1px dashed #c5d5df;border-radius:15px;text-align:center;background:#fff;grid-column:1/-1;color:#64758a}.empty strong{display:block;font-size:16px;color:var(--navy);margin-bottom:7px}
     .footer{margin:30px 0 8px;padding-top:19px;border-top:1px solid var(--border);font-size:11px;color:#788698;line-height:1.65}
     .leaflet-container{font:inherit}.leaflet-popup-content{font:inherit;min-width:155px}.leaflet-popup-content strong{color:var(--navy)}.map-price-marker{height:13px;width:13px;border:2px solid #fff;background:#16898b;border-radius:50%;box-shadow:0 1px 5px #162a4377}.map-price-marker.historic{background:#8996a6}.map-price-marker.fort{border-color:#d9eee9}.map-price-marker.focus{background:#ffba5b;height:18px;width:18px}
+
+    /* Marker previews are real, interactive Leaflet popups rather than inert tooltips.
+       Links remain clickable as the pointer leaves the pin and enters the popup. */
+    .map-price-marker{width:17px;height:17px;border-radius:50%;box-shadow:0 1px 6px #162a4380;transition:transform .12s ease}
+    .map-price-marker.historic{background:#8996a6}
+    .map-listing-popup .leaflet-popup-content-wrapper{border-radius:13px;box-shadow:0 5px 25px rgba(8,35,62,.23)}
+    .map-listing-popup .leaflet-popup-content{margin:13px 16px 14px;min-width:205px;max-width:270px}
+    .map-preview{display:grid;gap:5px;font-size:12px;line-height:1.4;color:#38516a}
+    .map-preview-price{font-size:19px;font-weight:850;letter-spacing:-.4px;color:#132b49}
+    .map-preview-address{font-weight:750;color:#233d58;overflow-wrap:anywhere}
+    .map-preview-area{font-size:11px;color:#60758c}
+    .map-preview-details{font-size:11px;color:#49657d;line-height:1.45}
+    .map-preview-status{font-size:10px;color:#6b7f91;border-top:1px solid #e9edf1;padding-top:8px;margin-top:3px}
+    .map-preview-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px}
+    .map-preview-link,.map-preview-card-btn{display:inline-flex;align-items:center;justify-content:center;min-height:34px;border-radius:8px;padding:7px 10px;font:inherit;font-size:11px;font-weight:780;text-decoration:none;cursor:pointer;text-align:center}
+    .map-preview-link{background:#117f82;color:#fff!important;border:1px solid #117f82}
+    .map-preview-link:hover{background:#0c686b}
+    .map-preview-card-btn{background:#f1f7f8;color:#145c64;border:1px solid #c8dee0}
+    .map-preview-card-btn:hover{background:#e0f0ef}
+    .map-hint{flex-basis:100%;font-size:11px;color:#6b7f91}
+    .listing-card.map-highlight{border-color:#158d8e;box-shadow:0 0 0 3px rgba(18,135,137,.15),0 6px 25px #123a5622}
+    @media(prefers-reduced-motion:reduce){.map-price-marker{transition:none}}
     @media(min-width:1600px){.card-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.listing-visual{height:165px}}
     @media(max-width:1350px){.filter-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.fee-field{align-self:end}.action-btn{align-self:end}.workspace{grid-template-columns:minmax(290px,39%) minmax(0,1fr)}}
     @media(max-width:1050px){.card-grid{grid-template-columns:1fr}.workspace{grid-template-columns:minmax(280px,42%) minmax(0,1fr)}.header-skyline{display:none}}
@@ -223,7 +245,7 @@
     </section>
     <div class="under-filter"><div class="disclaimer"><svg><use href="#i-alert"/></svg><span id="source-note">Showing studios and one-bedrooms SOUTH of the GW Bridge, with identifiable room shares removed. Verify private kitchen, bath, lease and availability.</span></div><button class="reset-btn" id="reset" type="button">Reset filters</button></div>
     <div class="workspace" id="workspace">
-      <aside class="map-panel" aria-label="Apartment locations"><div class="map-title"><span class="panel-heading">Explore the map</span><span class="map-caption">Columbia · South of GW Bridge</span></div><div id="map" role="region" aria-label="Interactive rental listing map"></div><div class="map-footer"><span><i class="legend-dot school"></i> Columbia campus</span><span><i class="legend-dot"></i> RentCast</span><span><i class="legend-dot historic"></i> Historical</span></div></aside>
+      <aside class="map-panel" aria-label="Apartment locations"><div class="map-title"><span class="panel-heading">Explore the map</span><span class="map-caption">Columbia · South of GW Bridge</span></div><div id="map" role="region" aria-label="Interactive rental listing map"></div><div class="map-footer"><span><i class="legend-dot school"></i> Columbia campus</span><span><i class="legend-dot"></i> RentCast</span><span><i class="legend-dot historic"></i> Historical</span><span class="map-hint">Hover over a pin for apartment details and links · Tap or click to keep the preview open</span></div></aside>
       <section class="results-panel" id="results" aria-label="Search results">
         <div class="results-toolbar"><div class="toolbar-main"><div class="tab-group" role="group" aria-label="Listing selection"><button type="button" class="tab active" id="all" aria-pressed="true">All listings <span id="all-total">(0)</span></button><button type="button" class="tab" id="saved" aria-pressed="false">♡ Saved <span id="saved-total">(0)</span></button></div><div class="view-toggle" role="group" aria-label="Display mode"><button type="button" class="view-button active" id="split-view" aria-label="Show map and listing cards" aria-pressed="true"><svg><use href="#i-map"/></svg> Map + cards</button><button type="button" class="view-button" id="list-view" aria-label="Show listing cards only" aria-pressed="false"><svg><use href="#i-list"/></svg> Cards only</button></div></div><div class="results-overview"><div><div class="results-title" id="count" role="status">Loading apartments…</div><p class="results-subtitle" id="snapshot">Fetching the latest stored datasets.</p></div><div class="source-counts" id="source-counts"></div></div></div>
         <div class="change-panel" id="changes-panel" aria-label="Changes in the last RentCast snapshot">
@@ -464,6 +486,7 @@
 
     function listingCard(x,idx){
       const card=text("article","listing-card","");
+      card.dataset.listingId=String(x.id);
       const visual=text("div","listing-visual scene-"+(AREAS.indexOf(x.area)%4+1),"");
       for(const c of ["visual-sun","visual-ground","building building-a","building building-b","building building-c","visual-shade"])visual.append(text("span",c,""));
       // Only display photos from our manually rights-cleared manifest. Source photo
@@ -539,14 +562,110 @@
       const links=text("div","card-links","");const loc=Number(x.latitude),lng=Number(x.longitude);if(Number.isFinite(loc)&&Number.isFinite(lng)&&x.latitude!=null&&x.longitude!=null){const jump=text("button","map-jump","Map");jump.type="button";jump.setAttribute("aria-label","Show "+(x.address||"this apartment")+" on map");jump.addEventListener("click",()=>showMarker(x.id));links.append(jump);}
       const url=originalListing;if(url){const a=text("a","card-link",x.source_kind==="rentcast"?"Search address":photoAdvertised?"Listing & photos":"Open listing");a.href=url;a.target="_blank";a.rel="noopener noreferrer";a.append(svg("external"));a.setAttribute("aria-label",x.source_kind==="rentcast"?"Search the web for this address":"Open original listing in a new tab");links.append(a);}else links.append(text("span","date-info","Link unavailable"));foot.append(links);body.append(foot);card.append(body);return card;
     }
-    function refreshPins(list){if(!map||!markers)return;markers.clearLayers();markerIndex.clear();const coords=[];
-      for(const x of list){const lat=Number(x.latitude),lng=Number(x.longitude);if(x.latitude==null||x.longitude==null||!Number.isFinite(lat)||!Number.isFinite(lng)||lat<40||lat>42||lng< -75||lng> -72)continue;
-        const dot=text("div","map-price-marker"+(x.source_kind==="historical"?" historic":""),"");
-        const marker=L.marker([lat,lng],{icon:L.divIcon({className:"",html:dot.outerHTML,iconSize:[16,16],iconAnchor:[8,8]})});
-        const pop=text("div","","");pop.append(text("strong","",money(x.rent)+" / month"),text("div","",(Number(x.bedrooms)===0?"Studio":"1 bedroom")+" · "+(x.area||"Unknown area")),text("div","",x.address||"Address not provided"),text("div","",x.source_kind==="rentcast"?"Provider-listed active at last check":"Historical advertisement"));
-        marker.bindPopup(pop);marker.addTo(markers);markerIndex.set(String(x.id),marker);coords.push([lat,lng]);
+    // Hover previews remain open long enough to move from the small marker to
+    // the popup's link. Clicking/tapping pins keeps the popup open until
+    // dismissed or another pin is selected; keyboard Enter also works.
+    let mapHoverCloseTimer=null, pinnedMapListingId=null;
+    const cancelMapPreviewClose=()=>{
+      if(mapHoverCloseTimer!==null){clearTimeout(mapHoverCloseTimer);mapHoverCloseTimer=null;}
+    };
+    const scheduleMapPreviewClose=(marker,id)=>{
+      cancelMapPreviewClose();
+      if(pinnedMapListingId===id)return;
+      mapHoverCloseTimer=setTimeout(()=>{
+        mapHoverCloseTimer=null;
+        if(pinnedMapListingId!==id && marker.isPopupOpen())marker.closePopup();
+      },350);
+    };
+    function focusListingFromMap(id){
+      const card=[...cards.querySelectorAll(".listing-card")].find(node=>node.dataset.listingId===String(id));
+      if(!card)return;
+      card.scrollIntoView({behavior:"smooth",block:"center"});
+      card.classList.add("map-highlight");
+      setTimeout(()=>card.classList.remove("map-highlight"),2100);
+    }
+    function buildMapPreview(x){
+      const pop=text("div","map-preview","");
+      pop.append(text("div","map-preview-price",money(x.rent)+" / month"));
+      pop.append(text("div","map-preview-address",(x.address||"Address not provided")+(x.unit?" · "+x.unit:"")));
+      pop.append(text("div","map-preview-area",(Number(x.bedrooms)===0?"Studio":"1 bedroom")+" · "+(x.area||"Unknown neighborhood")));
+      const facts=[];
+      if(x.bathrooms!=null&&x.bathrooms!==""&&Number.isFinite(Number(x.bathrooms)))facts.push(Number(x.bathrooms)+" bath");
+      if(x.sqft!=null&&Number(x.sqft)>0)facts.push(Math.round(Number(x.sqft)).toLocaleString()+" sq ft");
+      if(feeReported(x))facts.push("No-fee reported");
+      if(facts.length)pop.append(text("div","map-preview-details",facts.join(" · ")));
+      pop.append(text("div","map-preview-status",x.source_kind==="rentcast"?
+        "RentCast · provider-reported active, availability unverified":
+        "FirstMover · historical advertisement, availability unverified"));
+      const actions=text("div","map-preview-actions","");
+      const openCard=text("button","map-preview-card-btn","View apartment card");
+      openCard.type="button";
+      openCard.setAttribute("aria-label","Scroll to the apartment card for "+(x.address||"this listing"));
+      openCard.addEventListener("click",()=>focusListingFromMap(x.id));
+      actions.append(openCard);
+      // RentCast does not supply the original ad URL; its saved URL is an
+      // address web search, unlike FirstMover's original StreetEasy ad.
+      const url=safeUrl(x.url);
+      if(url){
+        const a=text("a","map-preview-link",x.source_kind==="historical"?"Original listing ↗":"Search address ↗");
+        a.href=url;a.target="_blank";a.rel="noopener noreferrer";
+        a.setAttribute("aria-label",x.source_kind==="historical"?
+          "Open the historical original listing in a new tab":
+          "Search the web for this apartment address in a new tab");
+        actions.append(a);
       }
-      if(coords.length){map.fitBounds(L.latLngBounds(coords).pad(.12),{maxZoom:14,animate:false});}else map.setView([40.819,-73.967],12,{animate:false});
+      pop.append(actions);
+      return pop;
+    }
+    function refreshPins(list){
+      if(!map||!markers)return;
+      cancelMapPreviewClose();
+      pinnedMapListingId=null;
+      markers.clearLayers();
+      markerIndex.clear();
+      const coords=[];
+      for(const x of list){
+        const lat=Number(x.latitude),lng=Number(x.longitude);
+        if(x.latitude==null||x.longitude==null||!Number.isFinite(lat)||!Number.isFinite(lng)||lat<40||lat>42||lng< -75||lng> -72)continue;
+        const dot=text("div","map-price-marker"+(x.source_kind==="historical"?" historic":""),"");
+        const id=String(x.id);
+        const marker=L.marker([lat,lng],{
+          icon:L.divIcon({className:"",html:dot.outerHTML,iconSize:[20,20],iconAnchor:[10,10]}),
+          title:money(x.rent)+" "+(Number(x.bedrooms)===0?"studio":"1 bedroom")+" · "+(x.address||"apartment"),
+          alt:"View apartment details",keyboard:true,riseOnHover:true
+        });
+        marker.bindPopup(buildMapPreview(x),{
+          className:"map-listing-popup",minWidth:205,maxWidth:290,
+          autoPan:true,closeButton:true,offset:[0,-7]
+        });
+        marker.on("mouseover",()=>{cancelMapPreviewClose();marker.openPopup();});
+        marker.on("mouseout",()=>scheduleMapPreviewClose(marker,id));
+        marker.on("click",()=>{
+          cancelMapPreviewClose();
+          pinnedMapListingId=id;
+          marker.openPopup();
+        });
+        marker.on("popupopen",()=>{
+          const el=marker.getPopup()?.getElement();
+          if(!el||el.dataset.mapPreviewHoverReady)return;
+          el.dataset.mapPreviewHoverReady="true";
+          el.addEventListener("mouseenter",cancelMapPreviewClose);
+          el.addEventListener("mouseleave",()=>scheduleMapPreviewClose(marker,id));
+          el.addEventListener("focusin",cancelMapPreviewClose);
+          el.addEventListener("focusout",e=>{
+            if(!el.contains(e.relatedTarget))scheduleMapPreviewClose(marker,id);
+          });
+        });
+        marker.on("popupclose",()=>{
+          cancelMapPreviewClose();
+          if(pinnedMapListingId===id)pinnedMapListingId=null;
+        });
+        marker.addTo(markers);
+        markerIndex.set(id,marker);
+        coords.push([lat,lng]);
+      }
+      if(coords.length)map.fitBounds(L.latLngBounds(coords).pad(.12),{maxZoom:14,animate:false});
+      else map.setView([40.819,-73.967],12,{animate:false});
     }
     function render(){
       const allBase=listForView();
