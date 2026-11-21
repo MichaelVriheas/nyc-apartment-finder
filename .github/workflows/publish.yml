@@ -37,6 +37,8 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Test homepage JavaScript and room-only filters (offline)
         run: node tests/check_frontend.cjs
+      - name: Smoke-test marketplace first load and comparison reload (offline)
+        run: node tests/check_runtime.cjs
 
       - name: Reserve budget, fetch RentCast, and persist results
         if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '7 14 * * 1' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[rentcast-test]')) }}
