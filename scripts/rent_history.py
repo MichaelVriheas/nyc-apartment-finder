@@ -8,6 +8,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 from statistics import median
+from scripts.areas import GWB_POLICY, south_of_gwb
 
 OUT = Path("site/data/market-history.json")
 SCHEMA_VERSION = 1
@@ -41,6 +42,8 @@ def make_snapshot(source):
     for row in source["listings"]:
         if not isinstance(row, dict) or row.get("source_kind") != "rentcast":
             raise ValueError("Only RentCast listing rows may be used for market history")
+        if source.get("geographic_policy") == GWB_POLICY and not south_of_gwb(row.get("latitude"), row.get("longitude")):
+            raise ValueError("Market history cannot include an apartment north of the GW Bridge or without coordinates")
         if row.get("area") not in AREAS or int(row.get("bedrooms", -1)) not in (0, 1):
             raise ValueError("Market snapshot contained an unsupported neighborhood or unit type")
         try:
@@ -61,6 +64,7 @@ def make_snapshot(source):
     return {
         "checked_at_utc": source["checked_at_utc"],
         "search_method": str(source.get("search_method") or "unspecified"),
+        "geographic_policy": str(source.get("geographic_policy") or "unspecified"),
         "legacy_reclassified": bool(source.get("snapshot_reclassified")),
         "response_cap_hit": capped,
         "total_count": len(rents),
@@ -75,8 +79,9 @@ def load_history(path=OUT):
             "source": "RentCast saved rental-search snapshots only",
             "rent_min": 2250,
             "rent_max": 3000,
-            "scope": "Eight selected Manhattan areas; studios and 1-bedroom listings",
-            "note": "Sampled advertised base rents only; not comprehensive market statistics, current verified availability, or inflation-adjusted prices. FirstMover historical posts excluded.",
+            "scope": "Eight targeted Manhattan areas south of the approximate George Washington Bridge approach; studios and 1-bedroom listings",
+            "geographic_policy": GWB_POLICY,
+            "note": "Filtered to the south-of-GW Bridge target area. Sampled advertised base rents only, not comprehensive market statistics, current verified availability, or inflation-adjusted prices. FirstMover historical posts excluded.",
             "snapshots": []
         }
     data = json.loads(path.read_text(encoding="utf-8"))
