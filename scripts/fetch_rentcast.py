@@ -17,6 +17,8 @@ LEDGER = Path(".rentcast-budget.json")
 OUTPUT = Path("site/data/rentcast.json")
 BUDGET = 20  # At most 20 attempted calls in ANY rolling 31-day window.
 CALLS_PER_RUN = 1
+MIN_RENT = 2250
+MAX_RENT = 3000
 SEARCHES = [
     ("Upper Manhattan", {"latitude": "40.8215", "longitude": "-73.9562", "radius": "3.7"}),
 ]
@@ -105,7 +107,7 @@ def classify(row, search):
 
 def retrieve(query, secret):
     params = dict(query)
-    params.update({"bedrooms": "0|1", "price": "*:3000", "status": "Active", "limit": "500"})
+    params.update({"bedrooms": "0|1", "price": f"{MIN_RENT}:{MAX_RENT}", "status": "Active", "limit": "500"})
     url = ENDPOINT + "?" + urllib.parse.urlencode(params)
     request = urllib.request.Request(url, headers={
         "X-Api-Key": secret, "Accept": "application/json",
@@ -141,7 +143,7 @@ def fetch():
             area = classify(row, label)
             rent = maybe_num(row.get("price"))
             bedrooms = maybe_num(row.get("bedrooms"))
-            if not area or rent is None or not 0 < rent <= 3000 or bedrooms not in (0, 1):
+            if not area or rent is None or not MIN_RENT <= rent <= MAX_RENT or bedrooms not in (0, 1):
                 continue
             if row.get("status") != "Active":
                 continue
@@ -188,7 +190,7 @@ def fetch():
     previous = {
         str(item["id"]): item
         for item in (prev_payload.get("listings", []) if prev_payload else [])
-        if isinstance(item, dict) and item.get("id") and item.get("area") != "Fort Lee" and not room_rental_reason(item)
+        if isinstance(item, dict) and item.get("id") and item.get("area") != "Fort Lee" and MIN_RENT <= (maybe_num(item.get("rent")) or -1) <= MAX_RENT and not room_rental_reason(item)
     }
     checked_at = now().isoformat()
     new_count = 0
@@ -238,6 +240,8 @@ def fetch():
         "checked_at_utc": checked_at,
         "warning": "Provider-reported active status is not a guarantee of availability. Verify independently. Neighborhood classifications are approximate.",
         "query_counts": counts,
+        "rent_min": MIN_RENT,
+        "rent_max": MAX_RENT,
         "comparison": comparison,
         "unit_policy": "Excludes only clearly identified room rentals, shared accommodation, co-living and zero-bath listings. Entire-unit status is not independently verified.",
         "requests_reserved_in_31_days": sum(int(x["calls"]) for x in entries),
