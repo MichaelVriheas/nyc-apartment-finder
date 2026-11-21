@@ -1,0 +1,4 @@
+{
+  "_note": "Optional, manually verified amenity evidence. The public RentCast listing feed and FirstMover CSV do not provide an in-unit washer-and-dryer field. Never infer from building laundry, hookups, general property records, or missing data. Entries must match the exact listing ID and include a direct HTTPS evidence URL, the date checked, and a brief precise note confirming a washer AND dryer physically inside the unit.",
+  "listings": {}
+}
