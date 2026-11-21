@@ -35,6 +35,8 @@ jobs:
 
       - name: Test RentCast comparison and API budget (offline)
         run: python -m unittest discover -s tests -v
+      - name: Test homepage JavaScript and room-only filters (offline)
+        run: node tests/check_frontend.cjs
 
       - name: Reserve budget, fetch RentCast, and persist results
         if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '7 14 * * 1' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[rentcast-test]')) }}
