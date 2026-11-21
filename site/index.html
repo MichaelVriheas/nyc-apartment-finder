@@ -172,6 +172,8 @@
     .compare-disclaimer{margin:13px 0 0;color:#687b8d;font-size:11px;line-height:1.6}
     @media(max-width:760px){.compare-dock{bottom:8px}.compare-dialog-inner{padding:16px}.compare-dialog-head h2{font-size:20px}}
     @media(max-width:560px){.compare-dock{bottom:0;width:100%;border-radius:16px 16px 0 0;padding:10px 12px;gap:8px}.compare-dock-main{flex-direction:row;align-items:center;gap:8px;width:100%}.compare-chips{order:2;flex-basis:100%}.compare-dock-actions{margin-left:auto}.compare-primary{padding:8px 11px}.has-comparison .page-main{padding-bottom:175px}.compare-dialog{width:calc(100% - 12px);max-height:91vh}.compare-dialog-inner{max-height:91vh}.compare-table{min-width:590px}.compare-table th.row-label{width:124px}}
+    @media(max-width:760px){.header-nav .insights-nav .nav-label{display:inline!important;font-size:11px}}
+    @media(max-width:560px){.masthead{flex-wrap:wrap;gap:8px;padding:12px 0}.header-nav{width:100%;justify-content:space-between;gap:3px}.header-nav .nav-link{padding:8px 10px}.header-nav .nav-link .nav-label{display:inline!important;font-size:11px}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.listing-card{transition:none}}
   </style>
 </head>
@@ -194,7 +196,7 @@
     <div class="container">
       <div class="masthead">
         <div class="brand"><span class="brand-mark"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M3 32h30M7 32V16h7v16m6 0V8h8v24M14 32V23h6v9M24 8V3M9 20h3m-3 5h3m12-12h2m-2 6h2m-2 6h2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><h1>NYC Apartment Finder</h1><p>Rental research near Columbia University</p></div></div>
-        <nav class="header-nav" aria-label="Main navigation"><a href="#filters" class="nav-link active"><svg><use href="#i-search"/></svg><span class="nav-label">Explore rentals</span></a><a href="#results" class="nav-link" id="header-favorites"><svg><use href="#i-heart"/></svg><span class="nav-label">Saved favorites</span><span class="fav-bubble" id="fav-total">0</span></a></nav>
+        <nav class="header-nav" aria-label="Main navigation"><a href="#filters" class="nav-link active" aria-current="page"><svg><use href="#i-search"/></svg><span class="nav-label">Marketplace</span></a><a href="./market-insights.html" class="nav-link insights-nav"><svg><use href="#i-layers"/></svg><span class="nav-label">Market Insights</span></a><a href="#results" class="nav-link" id="header-favorites"><svg><use href="#i-heart"/></svg><span class="nav-label">Saved favorites</span><span class="fav-bubble" id="fav-total">0</span></a></nav>
       </div>
       <div class="overview" aria-label="Search preferences">
         <div class="chip"><svg><use href="#i-wallet"/></svg> Monthly base rent <b>$2,250–$3,000</b></div>
