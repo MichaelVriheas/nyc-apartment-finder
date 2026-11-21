@@ -8,8 +8,8 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}header{background:var(--navy);color:white;padding:25px max(20px,calc((100vw - 1320px)/2))}header h1{margin:0;font-size:clamp(23px,3vw,34px);letter-spacing:-.8px}header p{margin:4px 0 0;color:#b9d4df}.shell{max-width:1360px;margin:auto;padding:22px}.alert{border:1px solid #ebd7a1;background:#fffae9;color:#70511a;padding:12px 17px;border-radius:12px;margin-bottom:18px}.controls{background:white;border:1px solid var(--line);border-radius:16px;padding:19px;margin-bottom:17px;display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:14px;align-items:end;box-shadow:0 3px 15px #1a344209}.control label{display:block;font-size:12px;font-weight:750;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}select,input{font:inherit;max-width:100%;width:100%;border:1px solid #cbd8e3;border-radius:9px;padding:9px 10px;background:#fff;color:var(--ink)}.check{display:flex;align-items:center;gap:8px;min-height:40px}.check input{width:18px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}button{font:inherit;border:1px solid #cddce4;background:white;border-radius:10px;padding:9px 13px;cursor:pointer;color:var(--ink)}button:hover{border-color:var(--accent)}button.active{background:var(--navy);color:white}.summary{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0;color:var(--muted)}.layout{display:grid;grid-template-columns:minmax(300px,520px) minmax(280px,1fr);gap:17px;align-items:start}.results{display:grid;gap:12px;max-height:calc(100vh - 275px);overflow:auto;padding-right:4px}.listing{border:1px solid var(--line);border-radius:14px;background:#fff;padding:17px;box-shadow:0 4px 16px #20334d08}.listing .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.price{font-weight:800;font-size:23px;letter-spacing:-.7px}.meta{font-size:13px;color:var(--muted);margin-top:5px}.address{font-weight:650;margin-top:9px}.pill{display:inline-block;background:#eaf4f5;border-radius:7px;color:#1d6572;font-size:12px;padding:3px 7px;margin:7px 4px 0 0}.listing a{color:#116d7a;font-weight:650;text-decoration:none}.listing a:hover{text-decoration:underline}.bottom{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:9px}.heart{font-size:21px;line-height:1}.map-panel{position:sticky;top:14px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:white}#map{height:min(65vh,750px);min-height:480px}.map-foot{padding:12px;font-size:12px;color:var(--muted)}.empty{padding:30px;border:1px dashed #bccdd7;border-radius:14px;background:white;color:var(--muted)}footer{color:var(--muted);font-size:12px;margin:23px 0}.sr-only{position:absolute;left:-9999px}@media(max-width:900px){.controls{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}.results{max-height:unset;overflow:visible}.map-panel{position:static;order:-1}#map{height:340px;min-height:340px}}@media(max-width:520px){.controls{grid-template-columns:1fr 1fr}.shell{padding:12px}.listing{padding:13px}}
 </style></head><body>
 <header><h1>NYC Apartment Finder</h1><p>Explore rentals around Columbia University and Fort Lee · August 2027 move</p></header>
-<main class="shell"><div class="alert"><strong>Market research, not live availability.</strong> Listings come from free monthly historical snapshots. Prices and availability may have changed. Always verify on the original listing before making decisions.</div>
-<section class="controls" aria-label="Apartment filters">
+<main class="shell"><div class="alert"><strong>Check every listing independently.</strong> RentCast records show provider-reported activity at the last API check, not guaranteed availability. The FirstMover records are historical snapshots. Prices, fees and move-in dates require verification.</div>
+<section class="controls" aria-label="Apartment filters">\n<div class="control"><label for="source">Listing source</label><select id="source"><option value="rentcast">Recently checked (RentCast)</option><option value="historical">Historical (FirstMover)</option><option value="both">Both sources</option></select></div>
 <div class="control"><label for="area">Neighborhood</label><select id="area"><option value="">All nine areas</option></select></div>
 <div class="control"><label for="rent">Maximum base rent</label><input id="rent" type="number" min="500" max="15000" step="100" value="3000"></div>
 <div class="control"><label for="beds">Apartment type</label><select id="beds"><option value="all">Studio + 1 bedroom</option><option value="0">Studio only</option><option value="1">One bedroom only</option></select></div>
@@ -25,7 +25,7 @@
 const AREAS=["Morningside Heights","Manhattan Valley","Manhattanville","Hamilton Heights","South Harlem","Northern Upper West Side","Central Harlem","Washington Heights","Fort Lee"];
 const $=s=>document.querySelector(s); const results=$("#results"),count=$("#count"),snapshot=$("#snapshot");
 for(const a of AREAS){const o=document.createElement("option");o.value=o.textContent=a;$("#area").append(o)}
-let listings=[],showSaved=false,map,markers;
+let listings=[],historical=[],rentcast=[],showSaved=false,map,markers;
 try{map=L.map("map").setView([40.813,-73.967],12);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',maxZoom:19}).addTo(map);markers=L.layerGroup().addTo(map);L.marker([40.8075,-73.9626]).addTo(map).bindPopup("Columbia University · Morningside campus")}catch(e){$("#map").textContent="Map unavailable; listing cards still work."}
 let favorites=new Set();try{favorites=new Set(JSON.parse(localStorage.getItem("nyc-apartment-favorites")||"[]"))}catch(e){}
 const money=n=>"$"+Number(n||0).toLocaleString("en-US");
@@ -33,28 +33,37 @@ const safeUrl=s=>{try{const u=new URL(s);return u.protocol==="https:"?u.href:nul
 const textEl=(tag,cls,value)=>{let e=document.createElement(tag);if(cls)e.className=cls;e.textContent=value;return e};
 function favorite(id){if(favorites.has(id))favorites.delete(id);else favorites.add(id);try{localStorage.setItem("nyc-apartment-favorites",JSON.stringify([...favorites]))}catch(e){}render()}
 function render(){
- let data=listings.filter(x=>x.rent<=Number($("#rent").value||3000)&&(!$("#area").value||x.area===$("#area").value)&&($("#beds").value==="all"||String(x.bedrooms)===$("#beds").value)&&(!$("#noFee").checked||["true","yes","1"].includes(String(x.no_fee_at_posting).toLowerCase()))&&(!showSaved||favorites.has(x.id)));
+ let data=listings.filter(x=>($("#source").value==="both"||x.source_kind===$("#source").value)&&x.rent<=Number($("#rent").value||3000)&&(!$("#area").value||x.area===$("#area").value)&&($("#beds").value==="all"||String(x.bedrooms)===$("#beds").value)&&(!$("#noFee").checked||["true","yes","1"].includes(String(x.no_fee_at_posting).toLowerCase()))&&(!showSaved||favorites.has(x.id)));
  const sort=$("#sort").value;data.sort((a,b)=>sort==="low"?a.rent-b.rent:sort==="high"?b.rent-a.rent:sort==="size"?(b.sqft||0)-(a.sqft||0):String(b.listed_at||"").localeCompare(String(a.listed_at||"")));
  const total=data.length;data=data.slice(0,150);
- count.textContent=total.toLocaleString()+" historical listing"+(total===1?"":"s")+(total>150?" · showing first 150":"");results.replaceChildren();if(markers)markers.clearLayers();
- if(!data.length){results.append(textEl("div","empty",listings.length?"No matching records in this snapshot. Try a different neighborhood, rent or apartment type.":"No historical listings loaded yet. Run the GitHub Actions workflow to generate the first snapshot."));return}
+ count.textContent=total.toLocaleString()+" listing"+(total===1?"":"s")+(total>150?" · showing first 150":"")+" · "+($("#source").selectedOptions[0]?.textContent||"");results.replaceChildren();if(markers)markers.clearLayers();
+ if(!data.length){results.append(textEl("div","empty",listings.length?"No matching listings. This may mean the selected source has no records for your filters.":"No data loaded yet. Check the GitHub Actions data refresh workflow."));return}
  const pins=[];
  for(const x of data){
   const card=textEl("article","listing","");const top=textEl("div","top","");const left=document.createElement("div");
   left.append(textEl("div","price",money(x.rent)+" / mo"),textEl("div","meta",(x.bedrooms===0?"Studio":"1 bedroom")+" · "+(x.bathrooms??"?")+" bath"+(x.sqft?" · "+Math.round(x.sqft).toLocaleString()+" sq ft":"")));
   const heart=textEl("button","heart",favorites.has(x.id)?"♥":"♡");heart.type="button";heart.setAttribute("aria-label",favorites.has(x.id)?"Remove favorite":"Save favorite");heart.onclick=()=>favorite(x.id);top.append(left,heart);card.append(top);
-  card.append(textEl("div","address",(x.address||"Address unavailable")+(x.unit?" · Unit "+x.unit:"")),textEl("span","pill",x.area),textEl("span","pill","Historical / unverified"));
-  const bottom=textEl("div","bottom","");bottom.append(textEl("span","meta",x.listed_at?"First advertised: "+String(x.listed_at).slice(0,10):"Advertisement date unavailable"));
-  const link=document.createElement("a");link.textContent="Original listing ↗";const u=safeUrl(x.url);if(u){link.href=u;link.target="_blank";link.rel="noopener noreferrer"}else{link.textContent="Link unavailable"}bottom.append(link);card.append(bottom);results.append(card);
+  card.append(textEl("div","address",(x.address||"Address unavailable")+(x.unit?" · Unit "+x.unit:"")),textEl("span","pill",x.area),textEl("span","pill",x.source_kind==="rentcast"?"RentCast: active at last check":"FirstMover: historical"),...(x.area_estimated?[textEl("span","pill","Area approximate")]:[]));
+  const bottom=textEl("div","bottom","");bottom.append(textEl("span","meta",x.source_kind==="rentcast"?"Provider last saw: "+String(x.last_seen||"unknown").slice(0,10):(x.listed_at?"First advertised: "+String(x.listed_at).slice(0,10):"Advertisement date unavailable")));
+  const link=document.createElement("a");link.textContent=x.link_label||"Original listing ↗";const u=safeUrl(x.url);if(u){link.href=u;link.target="_blank";link.rel="noopener noreferrer"}else{link.textContent="Link unavailable"}bottom.append(link);card.append(bottom);results.append(card);
   if(markers&&Number.isFinite(Number(x.latitude))&&Number.isFinite(Number(x.longitude))&&x.latitude!=null&&x.longitude!=null){
    const lat=Number(x.latitude),lng=Number(x.longitude);if(lat>40&&lat<42&&lng>-75&&lng<-72){const pin=L.circleMarker([lat,lng],{radius:6,weight:2,color:"#fff",fillColor:"#137d88",fillOpacity:.9}).bindPopup(money(x.rent)+" · "+(x.bedrooms===0?"Studio":"1 bedroom")+"<br>"+String(x.area).replace(/[&<>]/g,""));pin.addTo(markers);pins.push([lat,lng])}
   }
  }
  if(markers&&pins.length){const b=L.latLngBounds(pins);map.fitBounds(b.pad(.12),{maxZoom:14,animate:false})}
 }
-for(const id of ["area","rent","beds","sort","noFee"])$("#"+id).addEventListener("input",render);
+for(const id of ["source","area","rent","beds","sort","noFee"])$("#"+id).addEventListener("input",render);
 $("#all").onclick=()=>{showSaved=false;$("#all").classList.add("active");$("#saved").classList.remove("active");render()};
 $("#saved").onclick=()=>{showSaved=true;$("#saved").classList.add("active");$("#all").classList.remove("active");render()};
-$("#reset").onclick=()=>{$("#area").value="";$("#rent").value="3000";$("#beds").value="all";$("#sort").value="new";$("#noFee").checked=false;render()};
-fetch("./data/listings.json",{cache:"no-store"}).then(r=>{if(!r.ok)throw Error("HTTP "+r.status);return r.json()}).then(d=>{listings=Array.isArray(d.listings)?d.listings:[];snapshot.textContent=d.data_month?"Dataset: "+d.data_month+" · Snapshot, not live":"Historical snapshot";render()}).catch(e=>{snapshot.textContent="Data feed not generated";render();console.error(e)});
+$("#reset").onclick=()=>{$("#area").value="";$("#rent").value="3000";$("#beds").value="all";$("#sort").value="new";$("#noFee").checked=false;$("#source").value=rentcast.length?"rentcast":"historical";render()};
+async function getJSON(path){try{const response=await fetch(path,{cache:"no-store"});if(!response.ok)return null;return await response.json()}catch(e){console.warn("Data file unavailable",path,e);return null}}
+Promise.all([getJSON("./data/listings.json"),getJSON("./data/rentcast.json")]).then(([h,r])=>{
+ historical=Array.isArray(h?.listings)?h.listings.map(x=>({...x,source_kind:"historical"})):[];
+ rentcast=Array.isArray(r?.listings)?r.listings:[];
+ listings=[...rentcast,...historical];
+ $("#source").value=rentcast.length?"rentcast":"historical";
+ const info=rentcast.length?"RentCast checked "+String(r.checked_at_utc||"").slice(0,10)+" · "+rentcast.length+" matched · ": "";
+ snapshot.textContent=info+"FirstMover "+String(h?.data_month||"unavailable")+" (historical)";
+ render();
+});
 </script></body></html>
