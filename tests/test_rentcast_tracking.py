@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 from scripts import fetch_rentcast as mod
 from scripts.unit_filter import room_rental_reason
+from scripts.rent_history import make_snapshot, update_history, load_history, AREAS
 from scripts.areas import classify_area, polygons, NTA_TO_AREA
 
 NOW = datetime.now(timezone.utc).isoformat()
@@ -26,9 +27,11 @@ class RentcastTrackingTests(unittest.TestCase):
         root = Path(self.tmp.name)
         self.ledger_patch = patch.object(mod, "LEDGER", root/"budget.json")
         self.output_patch = patch.object(mod, "OUTPUT", root/"rentcast.json")
-        self.ledger_patch.start();self.output_patch.start()
+        self.history_patch = patch.object(mod, "HISTORY_OUTPUT", root/"market-history.json")
+        self.ledger_patch.start();self.output_patch.start();self.history_patch.start()
         self.addCleanup(self.ledger_patch.stop)
         self.addCleanup(self.output_patch.stop)
+        self.addCleanup(self.history_patch.stop)
         self.env = patch.dict(os.environ, {"GITHUB_RUN_ID": "test-123", "GITHUB_RUN_ATTEMPT": "1", "RENTCAST_API_KEY": "mock-not-real"}, clear=False)
         self.env.start();self.addCleanup(self.env.stop)
         mod.LEDGER.write_text(json.dumps({"entries": [{"run":"test-123-1","at": NOW,"calls":mod.CALLS_PER_RUN}]}))
@@ -115,6 +118,7 @@ class RentcastTrackingTests(unittest.TestCase):
             mod.fetch()
             retrieve.assert_not_called()
         self.assertFalse(mod.OUTPUT.exists())
+        self.assertFalse(mod.HISTORY_OUTPUT.exists())
 
     def test_budget_is_conservative(self):
         mod.LEDGER.write_text(json.dumps({"entries":[
@@ -123,6 +127,68 @@ class RentcastTrackingTests(unittest.TestCase):
         with patch.dict(os.environ,{"GITHUB_RUN_ID":"new-run","GITHUB_RUN_ATTEMPT":"1"}):
             mod.reserve()
         self.assertEqual(sum(x["calls"] for x in json.loads(mod.LEDGER.read_text())["entries"]),mod.BUDGET)
+
+
+
+class RentHistoryTests(unittest.TestCase):
+    def test_history_aggregations_and_subgroup_medians(self):
+        def row(identifier,area,rent,beds):
+            return {"id":identifier, "source_kind":"rentcast", "area":area,
+                    "rent":rent, "bedrooms":beds}
+        observation={
+            "checked_at_utc":"2026-11-24T14:00:00Z", "search_method":"test-method",
+            "query_counts":{"south":{"returned":500,"at_response_limit":True}},
+            "listings":[row("x","Morningside Heights",2300,0),
+                        row("y","Morningside Heights",2450,1),
+                        row("z","Morningside Heights",2550,1),
+                        row("w","Central Harlem",3000,0)]
+        }
+        p=make_snapshot(observation)
+        self.assertEqual(p["total_count"],4)
+        self.assertEqual(p["overall"]["all"]["median"],2500)
+        self.assertEqual(p["overall"]["studio"]["median"],2650)
+        self.assertEqual(p["neighborhoods"]["Morningside Heights"]["all"],{"count":3,"median":2450})
+        self.assertEqual(p["neighborhoods"]["Central Harlem"]["one_bed"],{"count":0,"median":None})
+        self.assertEqual(len(p["neighborhoods"]),len(AREAS))
+        self.assertTrue(p["response_cap_hit"])
+
+    def test_history_is_idempotent_and_separates_methods(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target=Path(tmp)/"history.json"
+            one={"checked_at_utc":"2026-11-21T12:00:00Z",
+                 "search_method":"legacy", "snapshot_reclassified":True,
+                 "listings":[{"source_kind":"rentcast","area":"Morningside Heights","rent":2500,"bedrooms":0}]}
+            two={"checked_at_utc":"2026-11-28T12:00:00Z",
+                 "search_method":"two-circles",
+                 "listings":[{"source_kind":"rentcast","area":"Morningside Heights","rent":2700,"bedrooms":0}]}
+            self.assertTrue(update_history(one,target))
+            self.assertFalse(update_history(one,target))
+            self.assertTrue(update_history(two,target))
+            history=load_history(target)
+            self.assertEqual(len(history["snapshots"]),2)
+            self.assertTrue(history["snapshots"][0]["legacy_reclassified"])
+            self.assertEqual(history["snapshots"][1]["search_method"],"two-circles")
+
+    def test_never_overwrite_conflicting_snapshot(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target=Path(tmp)/"history.json"
+            observed={"checked_at_utc":"2026-11-21T12:00:00Z","search_method":"test","listings":[]}
+            update_history(observed,target)
+            changed={**observed,"listings":[{"source_kind":"rentcast",
+                        "area":"Manhattan Valley","rent":2650,"bedrooms":1}]}
+            with self.assertRaises(ValueError):
+                update_history(changed,target)
+
+    def test_invalid_market_rows_rejected(self):
+        p={"checked_at_utc":"2026-11-21T12:00:00Z",
+           "listings":[{"source_kind":"historical","area":"Morningside Heights","rent":2500,"bedrooms":0}]}
+        with self.assertRaises(ValueError):
+            make_snapshot(p)
+        p["listings"][0]["source_kind"]="rentcast"
+        p["listings"][0]["rent"]=1700
+        with self.assertRaises(ValueError):
+            make_snapshot(p)
+
 
 
 class NeighborhoodPolygonTests(unittest.TestCase):
