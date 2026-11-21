@@ -6,7 +6,7 @@ on:
     branches: [main]
   schedule:
     - cron: "17 13 * * *" # Check free monthly FirstMover data daily
-    - cron: "7 14 * * 1"  # Check RentCast once per week (two API requests)
+    - cron: "7 14 * * 1"  # Check RentCast once per week (one API request)
 
 permissions:
   contents: write
