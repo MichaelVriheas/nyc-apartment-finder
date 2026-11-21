@@ -33,7 +33,7 @@ If an approved image fails to load, the card falls back to its illustration. Act
 
 ## Potential future sources
 
-- Permission from individual leasing offices or property managers in Morningside Heights, surrounding Manhattan neighborhoods and Fort Lee, including official listing image feeds
+- Permission from individual leasing offices or property managers in Morningside Heights and the surrounding Manhattan neighborhoods, including official listing image feeds
 - A properly licensed display feed with matching listing IDs, photos and explicit public display rights (possibly paid)
 - Directly supplied owner/agent photos where authorization for this website has been documented
 
