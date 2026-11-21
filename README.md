@@ -4,7 +4,7 @@ A personal, self-updating apartment search dashboard for an **August 2027** move
 
 ## Filters
 
-- **Maximum base monthly rent:** $3,000 (fees/utilities may be extra)
+- **Monthly base rent range:** $2,250–$3,000, inclusive (fees/utilities may be extra)
 - **Apartment types:** Studio and one-bedroom
 - **Manhattan:** Morningside Heights, Manhattan Valley, Manhattanville, Hamilton Heights, South Harlem, Northern Upper West Side, Central Harlem, Washington Heights
 
@@ -24,6 +24,8 @@ The site defaults to the RentCast feed when it has matching records. Choose a so
 **Goal:** a self-contained **studio or one-bedroom apartment**, not a private bedroom inside a shared apartment.
 
 The RentCast importer and FirstMover importer reject clearly identified room rentals, co-living, and shared-accommodation listings based on available listing descriptions, explicit room-numbered units, classification fields and explicitly reported zero bathrooms. **A studio is kept** when the dataset reports `bedrooms: 0`; a studio is not the same as a rental bedroom within a shared apartment.
+
+**Minimum rent safeguard:** Both importers and the dashboard enforce $2,250–$3,000 inclusive, and the RentCast API query requests only that interval. This can eliminate some low-cost room listings, but rent is not a substitute for confirming an independent unit. The max-rent control cannot be lowered below the minimum; either bound can be tightened within the overall range.
 
 **Important limitation:** Neither feed guarantees that a record covers an entire independent dwelling or includes a private kitchen and bathroom. When a provider omits these details, the listing remains marked `unverified_entire_unit`, never `confirmed`. Verify both private facilities and exclusive rights to the unit before applying or paying anything. A bedroom marketed as a studio may still slip through if its source has no room-sharing indicators.
 
