@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Observed rental-listing prices and neighborhood patterns for apartments near Columbia University.">
+  <title>Market Insights | NYC Apartment Finder</title>
+  <style>
+    :root{--navy:#132b49;--navy2:#213f5b;--teal:#117f82;--ink:#1c2e45;--muted:#687d90;--line:#e0e8ef;--paper:#fff;--bg:#f4f7fa;--soft:#eaf5f3;--shadow:0 4px 20px rgba(22,44,68,.06)}
+    *,*::before,*::after{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink)}
+    button,select{font:inherit}
+    a{color:#086d73}
+    .container{width:min(100% - 46px,1240px);margin:0 auto}
+    .site-header{background:#fff;border-bottom:1px solid var(--line);position:relative}
+    .masthead{display:flex;align-items:center;justify-content:space-between;gap:15px;min-height:95px}
+    .brand{display:flex;align-items:center;gap:13px;color:var(--navy);text-decoration:none}
+    .brand-mark{display:grid;place-items:center;width:52px;height:52px;border-radius:13px;background:linear-gradient(140deg,#dceff0,#eef1f9);border:1px solid #dae5ef}
+    .brand-mark svg{width:33px;height:33px}
+    .brand-title{font-size:23px;line-height:1.18;font-weight:820;letter-spacing:-.6px}
+    .brand-tag{color:var(--muted);font-size:11px;margin-top:3px}
+    .nav{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+    .navlink{display:inline-flex;align-items:center;text-decoration:none;border:1px solid transparent;border-radius:10px;padding:10px 13px;color:#36536c;font-size:12px;font-weight:780;white-space:nowrap}
+    .navlink:hover{background:#f0f5f7}
+    .navlink.current{background:var(--navy);color:#fff}
+    .main{padding:34px 0 55px}
+    .eyebrow{font-size:11px;font-weight:850;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin:0 0 7px}
+    h1{font-size:clamp(28px,3vw,41px);letter-spacing:-1.2px;line-height:1.12;color:var(--navy);margin:0}
+    .lead{color:#577084;max-width:760px;font-size:14px;margin:10px 0 17px;line-height:1.65}
+    .scope{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+    .scope span{border:1px solid #dbe9ee;background:#fff;border-radius:100px;padding:6px 11px;color:#45617a;font-size:11px;font-weight:730}
+    .notice{border:1px solid #dee9f0;background:#fdfefe;border-left:4px solid var(--teal);border-radius:12px;padding:12px 15px;color:#486479;line-height:1.6;margin:0 0 20px;font-size:12px}
+    .notice strong{color:var(--navy)}
+    .filters{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:13px;border:1px solid var(--line);border-radius:15px;background:#fff;padding:16px 18px;margin-bottom:18px;box-shadow:var(--shadow)}
+    .filters-title{font-weight:850;color:var(--navy);font-size:14px;margin:0}
+    .filters-help{color:var(--muted);font-size:11px;margin:3px 0 0}
+    .filter-inputs{display:flex;gap:12px;flex-wrap:wrap}
+    .filter{display:grid;gap:4px;min-width:185px}
+    .filter label{font-size:11px;font-weight:800;color:#3b556a}
+    .filter select{width:100%;padding:9px 11px;border:1px solid #cfdee8;border-radius:9px;background:#fff;color:#233a50;cursor:pointer}
+    .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:20px}
+    .stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:17px 17px 15px;box-shadow:var(--shadow);min-width:0}
+    .stat-label{font-size:11px;font-weight:800;color:#60788b}
+    .stat-value{font-size:clamp(24px,2.4vw,34px);font-weight:850;letter-spacing:-.7px;color:var(--navy);margin:4px 0;line-height:1.3;overflow-wrap:anywhere}
+    .stat-sub{font-size:10px;color:#7a8a98;line-height:1.5}
+    .panels{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:17px;align-items:start}
+    .panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 20px 19px;box-shadow:var(--shadow);min-width:0}
+    .panel-heading{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:start;margin-bottom:12px}
+    .panel h2{font-size:17px;color:var(--navy);margin:0;font-weight:830;line-height:1.3}
+    .panel-caption{font-size:11px;color:#687d8e;margin-top:4px}
+    .small-tag{display:inline-flex;align-items:center;border:1px solid #dbece8;background:#eaf5f2;color:#11706c;padding:5px 9px;border-radius:100px;font-size:10px;font-weight:850;white-space:nowrap}
+    .trend{width:100%;max-width:100%;min-height:268px;display:block}
+    .trend text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;fill:#6a8091;font-size:11px}
+    .chart-note{border-top:1px solid #e7edf1;margin-top:8px;padding-top:12px;color:#6a7c8a;font-size:11px;line-height:1.6}
+    .section-note{margin:0 0 10px;color:#6c7f91;font-size:11px}
+    .bar-list{display:grid;gap:10px}
+    .bar-row{border-bottom:1px solid #eff2f5;padding-bottom:8px}
+    .bar-row:last-child{border-bottom:0;padding-bottom:0}
+    .bar-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+    .bar-name{font-size:12px;font-weight:780;color:#294a65;overflow-wrap:anywhere}
+    .bar-number{font-size:12px;font-weight:840;color:#153855;white-space:nowrap}
+    .bar-track{height:8px;background:#eef3f6;border-radius:100px;margin:7px 0 3px;overflow:hidden}
+    .bar-fill{display:block;background:linear-gradient(90deg,#1b9290,#0d666c);height:100%;border-radius:100px}
+    .bar-meta{color:#788a99;font-size:10px}
+    .bar-empty{padding:18px 10px;color:#768b9b;font-size:12px;background:#f7fafb;border-radius:10px}
+    .explainer{margin-top:19px;border:1px solid var(--line);border-radius:14px;background:#fff;padding:19px 20px;color:#5e7183;font-size:12px;line-height:1.65}
+    .explainer h2{color:var(--navy);margin:0 0 8px;font-size:15px}
+    .explainer p{margin:0 0 8px}
+    .explainer p:last-child{margin:0}
+    .back-link{display:inline-flex;align-items:center;gap:6px;margin-top:15px;font-weight:800;text-decoration:none;font-size:12px}
+    .back-link:hover{text-decoration:underline}
+    .footer{margin-top:24px;padding:18px 0 0;border-top:1px solid var(--line);font-size:11px;color:#7b8c99}
+    .error{padding:30px 15px;background:#fff2f1;border:1px solid #e7c3bf;border-radius:12px;color:#93443c;font-weight:730;line-height:1.6}
+    @media(max-width:980px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.panels{grid-template-columns:1fr}}
+    @media(max-width:650px){.container{width:min(100% - 26px,550px)}.masthead{min-height:88px;flex-direction:column;align-items:flex-start;justify-content:center;padding:14px 0;gap:10px}.brand-mark{width:42px;height:42px}.brand-mark svg{width:27px;height:27px}.brand-title{font-size:20px}.nav{width:100%;gap:3px}.navlink{padding:8px 10px;font-size:11px}.main{padding-top:23px}.filters{padding:14px}.filter-inputs{width:100%}.filter{min-width:0;flex:1}.panel{padding:15px}.cards{gap:9px}.stat{padding:13px}.stat-value{font-size:25px}.trend{min-height:230px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container masthead">
+      <a class="brand" href="./index.html" aria-label="NYC Apartment Finder marketplace">
+        <span class="brand-mark"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M3 32h30M7 32V16h7v16m6 0V8h8v24M14 32V23h6v9M24 8V3M9 20h3m-3 5h3m12-12h2m-2 6h2m-2 6h2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span><span class="brand-title" style="display:block">NYC Apartment Finder</span><span class="brand-tag" style="display:block">Research near Columbia University</span></span>
+      </a>
+      <nav class="nav" aria-label="Main navigation">
+        <a class="navlink" href="./index.html">Marketplace</a>
+        <a class="navlink current" href="./market-insights.html" aria-current="page">Market Insights</a>
+        <a class="navlink" href="./index.html#results">Browse favorites</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container main">
+    <p class="eyebrow">Rental research / Neighborhoods</p>
+    <h1>Market Insights</h1>
+    <p class="lead">Understand how often apartments within your budget appear in each neighborhood, and how observed asking rents change as more weekly snapshots are collected.</p>
+    <div class="scope"><span>$2,250–$3,000 advertised base rent</span><span>Studios + 1-bedrooms</span><span>8 Manhattan search areas</span><span>RentCast snapshots only</span></div>
+    <div class="notice" role="note"><strong>What this data represents:</strong> Only listings captured by our filtered RentCast searches at their saved check times. Median prices are <strong>not</strong> full-neighborhood market medians. RentCast's 500-result cap, search changes, and unverified availability affect coverage. FirstMover's historical initial advertisements are not included.</div>
+    <div class="filters">
+      <div><p class="filters-title">Explore the data</p><p class="filters-help">Use the filters to update all statistics and charts.</p></div>
+      <div class="filter-inputs">
+        <div class="filter"><label for="bed-filter">Apartment type</label><select id="bed-filter"><option value="all">Studio + 1-bedroom</option><option value="studio">Studios only</option><option value="one_bed">1-bedrooms only</option></select></div>
+        <div class="filter"><label for="area-filter">Neighborhood</label><select id="area-filter"><option value="all">All 8 neighborhoods</option><option>Morningside Heights</option><option>Manhattan Valley</option><option>Manhattanville</option><option>Hamilton Heights</option><option>South Harlem</option><option>Northern Upper West Side</option><option>Central Harlem</option><option>Washington Heights</option></select></div>
+      </div>
+    </div>
+    <div id="error" hidden class="error" role="alert"></div>
+    <section class="cards" id="stat-cards" aria-label="Observed listing summary">
+      <div class="stat"><div class="stat-label">Observed listings</div><div class="stat-value" id="stat-count">—</div><div class="stat-sub">Saved RentCast search, not confirmed inventory</div></div>
+      <div class="stat"><div class="stat-label">Median asking base rent</div><div class="stat-value" id="stat-median">—</div><div class="stat-sub" id="stat-median-note">Only if sufficient samples exist</div></div>
+      <div class="stat"><div class="stat-label">Comparable checks</div><div class="stat-value" id="stat-weeks">—</div><div class="stat-sub" id="stat-weeks-note">Distinct observed checks, not months of estimates</div></div>
+      <div class="stat"><div class="stat-label">Latest saved check</div><div class="stat-value" id="stat-date" style="font-size:23px">—</div><div class="stat-sub">Source-reported active status is unverified</div></div>
+    </section>
+    <div class="panels">
+      <section class="panel" aria-labelledby="trend-title">
+        <div class="panel-heading"><div><h2 id="trend-title">Median asking-rent history</h2><div class="panel-caption" id="trend-subtitle">Loading observed checks…</div></div><span class="small-tag">Saved snapshots</span></div>
+        <svg id="trend-chart" class="trend" viewBox="0 0 700 290" role="img" aria-label="Median asking rent across comparable saved RentCast checks"></svg>
+        <div id="trend-note" class="chart-note" role="status" aria-live="polite">Only measured observations will appear here.</div>
+      </section>
+      <section class="panel" aria-labelledby="area-title">
+        <div class="panel-heading"><div><h2 id="area-title">Neighborhood snapshot</h2><div class="panel-caption" id="area-subtitle">Most recent saved RentCast observation</div></div><span class="small-tag">Current snapshot</span></div>
+        <p class="section-note">Median asking base rent by neighborhood. Areas with fewer than 3 matching records show their sample count but no median.</p>
+        <div class="bar-list" id="neighborhood-bars" aria-label="Neighborhood median rents and sample sizes"></div>
+        <div class="chart-note">Comparisons cover only the $2,250–$3,000 base-rent band. A larger observed count does not necessarily mean more total apartments are available.</div>
+      </section>
+    </div>
+    <section class="explainer" aria-label="Interpreting the charts">
+      <h2>How to read these insights</h2>
+      <p><strong>Median asking rent:</strong> The middle advertised base rent among listings captured in a saved search. It excludes utilities, fees, and apartments outside your budget. A subgroup needs at least three records before its median is displayed.</p>
+      <p><strong>Trends:</strong> Only checks made with the same RentCast search methodology are plotted together. When the search methodology changes, the timeline starts a new comparison series rather than connecting incompatible datasets. No missing weeks are invented.</p>
+      <p><strong>Availability:</strong> RentCast's reported active status may be outdated. Each search query can contain up to 500 records, so coverage is incomplete when capped. Neighborhood assignments follow NYC's 2020 statistical areas with approximate local splits.</p>
+      <a class="back-link" href="./index.html">← Return to apartment marketplace</a>
+    </section>
+    <footer class="footer">NYC Apartment Finder · Independent research tool. Not affiliated with Columbia University or rental-data providers. Statistics update only when a successful RentCast data refresh records a new snapshot.</footer>
+  </main>
+  <script>
+    "use strict";
+    const $=id=>document.getElementById(id);
+    const svgNS="http://www.w3.org/2000/svg";
+    const money=n=>"$"+Number(n).toLocaleString("en-US",{maximumFractionDigits:2});
+    const dateLabel=iso=>{
+      const d=new Date(iso);return Number.isNaN(d.getTime())?String(iso).slice(0,10):d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"UTC"});
+    };
+    const shortDate=iso=>{
+      const d=new Date(iso);return Number.isNaN(d.getTime())?String(iso).slice(5,10):d.toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"UTC"});
+    };
+    const element=(tag,cls,value)=>{
+      const node=document.createElement(tag);if(cls)node.className=cls;
+      if(value!=null)node.textContent=value;return node;
+    };
+    const svg=(tag,attrs={},parent=null)=>{
+      const node=document.createElementNS(svgNS,tag);
+      for(const [key,value] of Object.entries(attrs))node.setAttribute(key,String(value));
+      if(parent)parent.append(node);return node;
+    };
+    let snapshots=[];
+    const validPoint=point=>point&&Number(point.count)>=3&&typeof point.median==="number"&&Number.isFinite(point.median);
+    const subset=(s,area,bed)=>{
+      const group=area==="all"?s.overall:s.neighborhoods?.[area];
+      return group?.[bed]||{count:0,median:null};
+    };
+    function renderTrend(sameMethod,area,bed,latest){
+      const chart=$("trend-chart");chart.replaceChildren();
+      const caption=svg("title",{},chart);caption.textContent="Observed median advertised base rents; only comparable check dates with at least three listings are plotted.";
+      const plot=sameMethod.map(s=>({date:s.checked_at_utc,point:subset(s,area,bed),capped:!!s.response_cap_hit})).filter(p=>validPoint(p.point));
+      const left=69,right=680,top=24,bottom=243,height=bottom-top;
+      if(!plot.length){
+        const message=svg("text",{x:350,y:138,"text-anchor":"middle","font-size":15,fill:"#687d90"},chart);
+        message.textContent="No sufficiently sized observed sample yet";
+        $("trend-note").textContent="We have no comparable check with at least 3 matching records for these filters. No rent trend is estimated.";
+        return;
+      }
+      const min=Math.max(2150,Math.floor((Math.min(...plot.map(v=>v.point.median))-75)/50)*50);
+      const max=Math.min(3100,Math.ceil((Math.max(...plot.map(v=>v.point.median))+75)/50)*50);
+      const lo=min===max?min-50:min,hi=min===max?max+50:max;
+      const all=sameMethod;
+      const xPos=iso=>{
+        const idx=all.findIndex(s=>s.checked_at_utc===iso);
+        return all.length===1?(left+right)/2:left+(right-left)*(idx/(all.length-1));
+      };
+      const yPos=n=>bottom-((n-lo)/(hi-lo))*height;
+      for(let i=0;i<=4;i++){
+        const val=lo+(hi-lo)*i/4,y=yPos(val);
+        svg("line",{x1:left,y1:y,x2:right,y2:y,stroke:"#e7edf2","stroke-width":1},chart);
+        const lbl=svg("text",{x:left-11,y:y+4,"text-anchor":"end"},chart);
+        lbl.textContent="$"+Math.round(val).toLocaleString();
+      }
+      svg("line",{x1:left,y1:bottom,x2:right,y2:bottom,stroke:"#a5bac7","stroke-width":1.2},chart);
+      if(plot.length>1){
+        svg("polyline",{points:plot.map(v=>xPos(v.date)+","+yPos(v.point.median)).join(" "),fill:"none",stroke:"#117f82","stroke-width":3,"stroke-linejoin":"round","stroke-linecap":"round"},chart);
+      }
+      for(const sample of plot){
+        const x=xPos(sample.date),y=yPos(sample.point.median);
+        const circle=svg("circle",{cx:x,cy:y,r:6,fill:"#117f82",stroke:"#fff","stroke-width":2},chart);
+        const t=svg("title",{},circle);
+        t.textContent=dateLabel(sample.date)+": "+money(sample.point.median)+" median ("+sample.point.count+" matching records)"+(sample.capped?" · response cap hit":"");
+      }
+      const ticks=all.length===1?[0]:[0,Math.floor((all.length-1)/2),all.length-1];
+      for(const i of [...new Set(ticks)]){
+        const x=xPos(all[i].checked_at_utc);
+        const l=svg("text",{x:x,y:bottom+24,"text-anchor":i===0&&all.length>1?"start":i===all.length-1&&all.length>1?"end":"middle"},chart);
+        l.textContent=shortDate(all[i].checked_at_utc);
+      }
+      if(plot.length===1){
+        const label=svg("text",{x:xPos(plot[0].date),y:yPos(plot[0].point.median)-16,"text-anchor":"middle","font-weight":800},chart);
+        label.textContent=money(plot[0].point.median);
+      }
+      const previous=plot.length>1?plot[plot.length-2]:null,last=plot[plot.length-1];
+      $("trend-note").textContent=previous
+        ?"Latest observed median "+money(last.point.median)+" · "+(last.point.median>=previous.point.median?"+":"")+money(last.point.median-previous.point.median).replace("$-","-$")+" vs the prior comparable observed check. This is not a causal market trend."
+        :"Only one comparable check has enough records so far. The chart shows one real observation, not a fabricated trend.";
+    }
+    function renderBars(latest,bed,selectedArea){
+      const host=$("neighborhood-bars");host.replaceChildren();
+      const entries=Object.entries(latest.neighborhoods||{}).filter(([name])=>selectedArea==="all"||name===selectedArea);
+      entries.sort((a,b)=>{const x=a[1][bed],y=b[1][bed];if(validPoint(x)&&validPoint(y))return x.median-y.median;if(validPoint(x))return -1;if(validPoint(y))return 1;return (y?.count||0)-(x?.count||0);});
+      if(!entries.length){host.append(element("div","bar-empty","No neighborhoods available in this saved check."));return;}
+      for(const [name,data] of entries){
+        const info=data[bed]||{count:0,median:null},ok=validPoint(info);
+        const row=element("div","bar-row");
+        const top=element("div","bar-top");
+        top.append(element("span","bar-name",name),element("span","bar-number",ok?money(info.median):"—"));
+        row.append(top);
+        if(ok){
+          const track=element("div","bar-track");
+          const fill=element("span","bar-fill");
+          fill.style.width=Math.min(100,Math.max(5,(info.median-2250)/750*100))+"%";
+          fill.title=money(info.median)+" median asking rent";
+          track.append(fill);row.append(track);
+        }
+        row.append(element("div","bar-meta",info.count+" matching listing"+(info.count===1?"":"s")+(info.count===0?" · no data":info.count<3?" · limited sample; median withheld":" · median observed asking rent")));
+        host.append(row);
+      }
+    }
+    function render(){
+      if(!snapshots.length)return;
+      const latest=snapshots[snapshots.length-1],bed=$("bed-filter").value,area=$("area-filter").value;
+      const current=subset(latest,area,bed);
+      const sameMethod=snapshots.filter(s=>s.search_method===latest.search_method&&s.checked_at_utc<=latest.checked_at_utc);
+      $("stat-count").textContent=Number(current.count).toLocaleString();
+      $("stat-median").textContent=validPoint(current)?money(current.median):"—";
+      $("stat-median-note").textContent=validPoint(current)?"Observed listings in the chosen rent band":"Fewer than 3 matches; median withheld";
+      $("stat-weeks").textContent=String(sameMethod.length);
+      $("stat-weeks-note").textContent="Check"+(sameMethod.length===1?"":"s")+" with the current search method";
+      $("stat-date").textContent=dateLabel(latest.checked_at_utc);
+      const relevant=area==="all"?"all neighborhoods":area;
+      $("trend-subtitle").textContent=(bed==="all"?"Studio + 1-bedroom":bed==="studio"?"Studios":"1-bedrooms")+" · "+relevant;
+      $("area-subtitle").textContent=dateLabel(latest.checked_at_utc)+(latest.response_cap_hit?" · source response capped":" · provider-reported active");
+      renderTrend(sameMethod,area,bed,latest);
+      renderBars(latest,bed,area);
+      const historical=snapshots.length-sameMethod.length;
+      if(historical>0)$("trend-note").textContent+=" "+historical+" older saved observation"+(historical===1?"":"s")+" use a different search method and are intentionally excluded from this trend.";
+    }
+    $("bed-filter").addEventListener("change",render);
+    $("area-filter").addEventListener("change",render);
+    fetch("./data/market-history.json",{cache:"no-store"}).then(response=>{
+      if(!response.ok)throw Error("History file unavailable");
+      return response.json();
+    }).then(data=>{
+      if(!data||data.schema_version!==1||!Array.isArray(data.snapshots))throw Error("Unexpected history format");
+      snapshots=data.snapshots.filter(p=>p&&typeof p.checked_at_utc==="string"&&p.overall&&p.neighborhoods).sort((a,b)=>a.checked_at_utc.localeCompare(b.checked_at_utc));
+      if(!snapshots.length)throw Error("No observed RentCast checks available yet");
+      render();
+    }).catch(err=>{
+      console.error("Market Insights unavailable",err);
+      $("error").hidden=false;
+      $("error").textContent="The market-history data could not be loaded. The apartment marketplace is still available; please check the latest GitHub data-refresh workflow.";
+      $("stat-count").textContent="—";$("stat-median").textContent="—";$("stat-weeks").textContent="—";
+      $("trend-note").textContent="No chart displayed without a real saved dataset.";
+    });
+  </script>
+</body>
+</html>
