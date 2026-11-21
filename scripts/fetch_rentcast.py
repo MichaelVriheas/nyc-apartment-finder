@@ -15,10 +15,9 @@ from pathlib import Path
 LEDGER = Path(".rentcast-budget.json")
 OUTPUT = Path("site/data/rentcast.json")
 BUDGET = 20  # At most 20 attempted calls in ANY rolling 31-day window.
-CALLS_PER_RUN = 2
+CALLS_PER_RUN = 1
 SEARCHES = [
     ("Upper Manhattan", {"latitude": "40.8215", "longitude": "-73.9562", "radius": "3.7"}),
-    ("Fort Lee", {"city": "Fort Lee", "state": "NJ"}),
 ]
 ENDPOINT = "https://api.rentcast.io/v1/listings/rental/long-term"
 
@@ -78,8 +77,6 @@ def maybe_num(v):
 def classify(row, search):
     state = str(row.get("state") or "").upper()
     city = str(row.get("city") or "").lower()
-    if search == "Fort Lee":
-        return "Fort Lee" if state == "NJ" and city == "fort lee" else None
     if state != "NY":
         return None
     lat = maybe_num(row.get("latitude"))
@@ -157,7 +154,7 @@ def fetch():
             search_url = "https://www.google.com/search?" + urllib.parse.urlencode({"q": f"{addr} apartment rent"})
             all_rows[identifier] = {
                 "id": "rentcast-" + identifier, "source_kind": "rentcast",
-                "area": area, "area_estimated": area != "Fort Lee",
+                "area": area, "area_estimated": True,
                 "address": addr, "unit": "",
                 "rent": int(rent), "bedrooms": int(bedrooms),
                 "bathrooms": maybe_num(row.get("bathrooms")), "sqft": maybe_num(row.get("squareFootage")),
