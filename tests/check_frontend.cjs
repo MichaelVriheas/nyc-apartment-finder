@@ -108,5 +108,14 @@ assert.ok(html.includes('$("#sort").value="new"'),
   "Reset should still restore the default sort");
 assert.ok(html.includes('function buildMapPreview(x)')&&html.includes('function refreshPins(list)'),
   "Interactive map must remain intact");
+// The redundant summary badges are gone, but the actual search settings remain.
+for(const removed of ['class="overview"','class="chip"','.overview{','.chip{','aria-label="Search preferences"']){
+  assert.ok(!html.includes(removed),"Redundant summary badge should be removed: "+removed);
+}
+for(const required of ['id="filters"','id="source"','id="area"','id="minRent"',
+                       'id="rent"','id="beds"','id="sort"','id="apply"']){
+  assert.ok(html.includes(required),"Actual search filter must remain: "+required);
+}
+assert.ok(html.includes('href="./market-insights.html"'),"Keep primary navigation intact");
 assert.ok(!html.includes("Fort Lee"), "Removed search area must not appear");
 console.log("Passed JS syntax and room-rental UI guard checks.");
