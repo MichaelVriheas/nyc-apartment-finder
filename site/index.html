@@ -121,6 +121,55 @@
     @media(max-width:1050px){.card-grid{grid-template-columns:1fr}.workspace{grid-template-columns:minmax(280px,42%) minmax(0,1fr)}.header-skyline{display:none}}
     @media(max-width:760px){.container{width:min(100% - 24px,650px)}.masthead{min-height:90px}.brand-mark{width:45px;height:45px}.brand-mark svg{width:27px;height:27px}.brand h1{font-size:24px}.brand p{font-size:11px}.header-nav .nav-link:not(.active){padding:9px}.header-nav .nav-link:not(.active) .nav-label{display:none}.nav-link{padding:9px}.nav-link .fav-bubble{display:none}.overview{padding:11px 0 15px;gap:8px}.chip{padding:8px 11px;font-size:11px}.page-main{padding-top:13px}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.filter-panel{padding:14px}.filter-meta{display:none}.workspace{grid-template-columns:1fr}.map-panel{position:static}.map-panel #map{min-height:320px;height:360px}.card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.listing-visual{height:135px}}
     @media(max-width:560px){.masthead{gap:10px}.brand h1{font-size:21px}.brand-mark{width:40px;height:40px}.brand{gap:10px}.header-nav .nav-link.active{padding:8px 9px}.header-nav .nav-link .nav-label{display:none}.chip{width:calc(50% - 4px);justify-content:flex-start}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-grid .field:first-child{grid-column:1/-1}.filter-grid .fee-field{grid-column:1}.filter-grid .action-btn{grid-column:2}.under-filter{align-items:flex-start}.card-grid{grid-template-columns:1fr}.listing-visual{height:160px}.tab{padding:8px 10px;font-size:12px}.view-button{font-size:0;gap:0}.view-button svg{width:17px;height:17px}.results-title{font-size:18px}.results-toolbar{padding:12px}.map-panel #map{height:310px;min-height:310px}}
+
+    /* Side-by-side comparison: self-contained, responsive, no extra API calls */
+    .compare-tip{font-size:12px;color:#677e90;margin:0 0 11px;padding:0 2px;line-height:1.5}
+    .listing-card.is-compared{border-color:#56aaa8;box-shadow:0 3px 22px rgba(18,128,130,.16)}
+    .compare-toggle{display:inline-flex;align-items:center;justify-content:center;gap:5px;margin-top:11px;padding:7px 11px;border:1px solid #c5d9de;border-radius:8px;background:#f3f9fa;color:#176976;font:inherit;font-weight:780;font-size:11px;cursor:pointer}
+    .compare-toggle:hover:not(:disabled){border-color:#318b8b;background:#e3f4f1}
+    .compare-toggle.is-selected{background:#d5f1e9;border-color:#8cd6c5;color:#076957}
+    .compare-toggle:disabled{opacity:.48;cursor:not-allowed}
+    .compare-dock[hidden]{display:none!important}
+    .compare-dock{position:fixed;z-index:1100;left:50%;bottom:16px;transform:translateX(-50%);width:min(950px,calc(100% - 26px));display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;border:1px solid #8bbeba;border-radius:17px;background:#fff;box-shadow:0 14px 42px rgba(9,40,67,.24)}
+    .compare-dock-main{display:flex;flex-direction:column;gap:3px;flex:none}
+    .compare-dock-main strong{font-size:13px;color:var(--navy)}
+    .compare-dock-main span{font-size:11px;color:var(--muted)}
+    .compare-chips{display:flex;gap:7px;align-items:center;flex:1;min-width:0;overflow-x:auto;scrollbar-width:thin;padding:3px 1px}
+    .compare-chip{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;max-width:185px;border:1px solid #d9e5e8;border-radius:9px;padding:5px 7px 5px 9px;background:#f5fafb;font-size:11px;color:#304a5e;font-weight:700}
+    .compare-chip-label{min-width:0;max-width:128px;overflow:hidden;text-overflow:ellipsis}
+    .compare-chip-remove{flex:none;padding:1px 4px;border:0;border-radius:6px;background:transparent;color:#627888;font-weight:900;font-size:17px;line-height:1.1;cursor:pointer}
+    .compare-chip-remove:hover{background:#d9eeed;color:#124c51}
+    .compare-dock-actions{display:flex;align-items:center;gap:8px;flex:none}
+    .compare-primary{padding:10px 15px;background:#117f82;border:1px solid #117f82;color:#fff;border-radius:9px;font:inherit;font-weight:800;font-size:12px;cursor:pointer}
+    .compare-primary:hover:not(:disabled){background:#09696e}
+    .compare-primary:disabled{background:#bdccce;border-color:#bdccce;cursor:not-allowed}
+    .compare-clear{padding:8px 6px;border:0;background:transparent;color:#567082;font:inherit;font-size:11px;font-weight:750;cursor:pointer}
+    .compare-clear:hover{text-decoration:underline}
+    .has-comparison .page-main{padding-bottom:125px}
+    .compare-dialog{width:min(1050px,calc(100% - 24px));max-width:1050px;max-height:88vh;border:0;border-radius:18px;padding:0;background:#fff;color:var(--ink);box-shadow:0 27px 90px #071e3899;overflow:hidden}
+    .compare-dialog::backdrop{background:rgba(7,23,43,.68)}
+    .compare-dialog-inner{padding:22px;overflow-y:auto;max-height:88vh}
+    .compare-dialog-head{display:flex;align-items:start;justify-content:space-between;gap:15px;margin-bottom:12px}
+    .compare-dialog-head h2{margin:0;color:var(--navy);font-size:23px;line-height:1.15}
+    .compare-dialog-head p{margin:6px 0 0;font-size:12px;line-height:1.5;color:var(--muted)}
+    .compare-dialog-close{flex:none;background:#e9f2f4;color:#36596c;border:0;border-radius:9px;font-size:12px;font-weight:800;padding:10px 13px;cursor:pointer}
+    .compare-dialog-close:hover{background:#d9eaed}
+    .compare-table-scroll{overflow-x:auto;border:1px solid #dce6ed;border-radius:13px;scrollbar-width:thin}
+    .compare-table{border-collapse:separate;border-spacing:0;table-layout:fixed;min-width:680px;width:100%;font-size:12px}
+    .compare-table thead th{background:#eff6f7;color:#163952;border-bottom:1px solid #dbe7eb;vertical-align:top;padding:13px 12px;text-align:left}
+    .compare-table th.row-label{width:150px;text-align:left;white-space:normal;color:#40566c;font-weight:790;background:#f6f8fa}
+    .compare-table tbody td,.compare-table tbody th{padding:11px 12px;border-bottom:1px solid #e7edf1;vertical-align:top;word-wrap:break-word;overflow-wrap:break-word;line-height:1.45}
+    .compare-table tbody tr:last-child td,.compare-table tbody tr:last-child th{border-bottom:0}
+    .compare-table tbody tr:nth-child(even) td{background:#fbfcfd}
+    .compare-table .best-value{background:#eef9f3!important;color:#0a7154;font-weight:830}
+    .compare-property-name{font-size:13px;font-weight:850;line-height:1.4;color:#173953;overflow-wrap:anywhere}
+    .compare-property-meta{font-size:11px;color:#687f91;font-weight:550;margin-top:4px}
+    .compare-remove{background:transparent;border:0;padding:4px 0;margin-top:7px;color:#a33a3a;font:inherit;font-size:11px;font-weight:730;cursor:pointer}
+    .compare-remove:hover{text-decoration:underline}
+    .compare-table-link{color:#087578;font-weight:760;text-decoration:underline;text-underline-offset:2px}
+    .compare-disclaimer{margin:13px 0 0;color:#687b8d;font-size:11px;line-height:1.6}
+    @media(max-width:760px){.compare-dock{bottom:8px}.compare-dialog-inner{padding:16px}.compare-dialog-head h2{font-size:20px}}
+    @media(max-width:560px){.compare-dock{bottom:0;width:100%;border-radius:16px 16px 0 0;padding:10px 12px;gap:8px}.compare-dock-main{flex-direction:row;align-items:center;gap:8px;width:100%}.compare-chips{order:2;flex-basis:100%}.compare-dock-actions{margin-left:auto}.compare-primary{padding:8px 11px}.has-comparison .page-main{padding-bottom:175px}.compare-dialog{width:calc(100% - 12px);max-height:91vh}.compare-dialog-inner{max-height:91vh}.compare-table{min-width:590px}.compare-table th.row-label{width:124px}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.listing-card{transition:none}}
   </style>
 </head>
@@ -181,11 +230,30 @@
           </div>
           <div class="change-falloff" id="not-seen-note">Change tracking compares saved RentCast snapshots only; it does not establish current availability.</div>
         </div>
+        <p class="compare-tip">Want to compare options? Select <strong>Compare +</strong> on two or three listings to see them side by side.</p>
         <div class="card-grid" id="cards" aria-live="polite"></div>
       </section>
     </div>
     <footer class="footer">Research tool only. RentCast listings are provider-reported active at the last check, not guaranteed available now; FirstMover listings are historical. Asking base rents may exclude additional charges, Neighborhoods use NYC's 2020 Neighborhood Tabulation Areas (not definitive neighborhood borders), with some approximate sub-neighborhood splits; campus distances are straight-line rather than walking distances. Walking and transit links open current Google Maps routes. Obvious room shares are filtered, but private-unit status is not independently verified. This site is not affiliated with Columbia University, RentCast, FirstMover, StreetEasy or Zillow. <a href="https://www.firstmovernyc.com/open-data" target="_blank" rel="noopener noreferrer">FirstMover Open Data (CC0)</a>. Favorites stay in this browser; some external apartment searches may not locate an exact listing.</footer>
   </main>
+  <aside class="compare-dock" id="compare-dock" aria-label="Selected apartments for comparison" hidden>
+    <div class="compare-dock-main"><strong>Compare apartments</strong><span id="compare-count" role="status" aria-live="polite">0 of 3 selected</span></div>
+    <div class="compare-chips" id="compare-chips" aria-label="Selected listings"></div>
+    <div class="compare-dock-actions">
+      <button id="compare-clear" class="compare-clear" type="button">Clear</button>
+      <button id="compare-open" class="compare-primary" type="button" disabled>Compare side by side</button>
+    </div>
+  </aside>
+  <dialog id="compare-dialog" class="compare-dialog" aria-labelledby="compare-dialog-title">
+    <div class="compare-dialog-inner">
+      <div class="compare-dialog-head">
+        <div><h2 id="compare-dialog-title">Apartment comparison</h2><p>Compare asking prices and reported details. Commute routes open in Google Maps.</p></div>
+        <button id="compare-close" class="compare-dialog-close" type="button">Close ✕</button>
+      </div>
+      <div id="compare-table-host" class="compare-table-scroll" aria-label="Side-by-side comparison table"></div>
+      <p class="compare-disclaimer">Asking base rents may exclude fees and utilities. RentCast status is provider-reported, while FirstMover records are historical. Exact unit privacy, availability, and transit times require independent verification. Neighborhood labels are approximate.</p>
+    </div>
+  </dialog>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     "use strict";
@@ -194,6 +262,13 @@
     const cards=$("#cards"), count=$("#count"), summary=$("#snapshot"), workspace=$("#workspace");
     for (const area of AREAS) {const o=document.createElement("option");o.value=o.textContent=area;$("#area").append(o);}
     let listings=[],historical=[],rentcast=[],showSaved=false,map=null,markers=null,markerIndex=new Map(),feedMetadata={},approvedPhotos={},changeMode="all";
+
+    const compareStorageKey="nyc-apartment-comparison-v1";
+    let compareIds=[];
+    try {
+      const savedIds=JSON.parse(localStorage.getItem(compareStorageKey)||"[]");
+      if(Array.isArray(savedIds))compareIds=[...new Set(savedIds.filter(x=>typeof x==="string"&&x.length>0))].slice(0,3);
+    }catch(e){console.warn("Previous comparison selections unavailable",e);}
     let favorites=new Set();
     try{const stored=JSON.parse(localStorage.getItem("nyc-apartment-favorites")||"[]");if(Array.isArray(stored))favorites=new Set(stored.map(String));}catch(e){console.warn("Favorites unavailable",e);}
     const svg=(name,cls="")=>{const el=document.createElementNS("http://www.w3.org/2000/svg","svg");if(cls)el.setAttribute("class",cls);el.setAttribute("aria-hidden","true");const use=document.createElementNS("http://www.w3.org/2000/svg","use");use.setAttribute("href","#i-"+name);el.append(use);return el;};
@@ -244,6 +319,134 @@
     }
     function listForView(){const sort=$("#sort").value;let data=listings.filter(filtersMatch);data.sort((a,b)=>sort==="low"?Number(a.rent)-Number(b.rent):sort==="high"?Number(b.rent)-Number(a.rent):sort==="size"?Number(b.sqft||0)-Number(a.sqft||0):sort==="campus"?campusDistance(a)-campusDistance(b):freshDate(b).localeCompare(freshDate(a)));return data;}
     function showMarker(id){const found=markerIndex.get(String(id));if(!map||!found)return;setListOnly(false);setTimeout(()=>{map.invalidateSize();map.setView(found.getLatLng(),Math.max(map.getZoom(),15),{animate:true});found.openPopup();if(window.matchMedia("(max-width:760px)").matches)$("#map").scrollIntoView({behavior:"smooth",block:"center"});},25);}
+
+    // Comparison stores IDs, never an outdated copy of asking rents. The current
+    // source snapshots are always used, and removed records are pruned on load.
+    const comparedListings=()=>{
+      const lookup=new Map(listings.map(x=>[String(x.id),x]));
+      return compareIds.map(id=>lookup.get(id)).filter(Boolean);
+    };
+    const persistCompare=()=>{
+      try{localStorage.setItem(compareStorageKey,JSON.stringify(compareIds));}
+      catch(e){console.warn("Unable to persist comparison selections",e);}
+    };
+    const routeLink=(x,mode)=>{
+      const hasCoords=x.latitude!=null&&x.longitude!=null
+        &&Number.isFinite(Number(x.latitude))&&Number.isFinite(Number(x.longitude));
+      const origin=hasCoords?String(x.latitude)+","+String(x.longitude):String(x.address||"");
+      if(!origin)return null;
+      const params=new URLSearchParams({api:"1",origin,
+        destination:"Columbia University, 116th St and Broadway, New York, NY",travelmode:mode});
+      return "https://www.google.com/maps/dir/?"+params.toString();
+    };
+    const compareArea=x=>Number.isFinite(Number(x.sqft))&&Number(x.sqft)>0?Number(x.sqft):null;
+    const compareBathrooms=x=>x.bathrooms==null||x.bathrooms===""?"Not reported":String(x.bathrooms);
+    const compareSource=x=>x.source_kind==="rentcast"
+      ?"RentCast · provider-listed active (unverified), last seen "+dateOnly(x.last_seen)
+      :"FirstMover · historical advertisement, first listed "+dateOnly(x.listed_at);
+    function toggleCompare(id){
+      const key=String(id);
+      if(compareIds.includes(key))compareIds=compareIds.filter(v=>v!==key);
+      else {
+        if(compareIds.length>=3||!listings.some(x=>String(x.id)===key))return;
+        compareIds.push(key);
+      }
+      persistCompare();
+      updateComparisonUI();
+      if($("#compare-dialog").open){
+        if(comparedListings().length<2)$("#compare-dialog").close();
+        else renderCompareTable();
+      }
+    }
+    function updateComparisonUI(){
+      const selected=comparedListings(),hasSpace=compareIds.length<3;
+      document.querySelectorAll(".compare-toggle").forEach(btn=>{
+        const included=compareIds.includes(btn.dataset.compareId);
+        btn.textContent=included?"✓ Added to comparison":"Compare +";
+        btn.setAttribute("aria-pressed",String(included));
+        btn.classList.toggle("is-selected",included);
+        btn.disabled=!included&&!hasSpace;
+        btn.title=btn.disabled?"Maximum three apartments; remove one to add another":included?"Remove from comparison":"Add apartment to comparison";
+        btn.closest(".listing-card")?.classList.toggle("is-compared",included);
+      });
+      const dock=$("#compare-dock");dock.hidden=selected.length===0;
+      document.body.classList.toggle("has-comparison",selected.length>0);
+      $("#compare-count").textContent=selected.length+" of 3 selected"+(selected.length===1?" · select one more":"");
+      $("#compare-open").disabled=selected.length<2;
+      const chips=$("#compare-chips");chips.replaceChildren();
+      for(const x of selected){
+        const chip=text("span","compare-chip","");
+        const name=text("span","compare-chip-label",(x.address||"Apartment")+" · "+money(x.rent));
+        name.title=(x.address||"Apartment")+" · "+money(x.rent);
+        const remove=text("button","compare-chip-remove","×");
+        remove.type="button";remove.setAttribute("aria-label","Remove "+(x.address||"apartment")+" from comparison");
+        remove.addEventListener("click",()=>toggleCompare(x.id));
+        chip.append(name,remove);chips.append(chip);
+      }
+    }
+    function renderCompareTable(){
+      const properties=comparedListings(),host=$("#compare-table-host");
+      host.replaceChildren();
+      if(properties.length<2)return;
+      const table=text("table","compare-table","");
+      const head=document.createElement("thead");
+      const headers=document.createElement("tr");
+      const corner=text("th","row-label","Compare");corner.scope="col";headers.append(corner);
+      for(const x of properties){
+        const th=document.createElement("th");th.scope="col";
+        th.append(text("div","compare-property-name",x.address||"Address not provided"));
+        th.append(text("div","compare-property-meta",(x.area||"Unknown neighborhood")+" · "+(x.source_kind==="historical"?"Historical":"RentCast")));
+        const remove=text("button","compare-remove","Remove from comparison");remove.type="button";
+        remove.setAttribute("aria-label","Remove "+(x.address||"apartment")+" from comparison");
+        remove.addEventListener("click",()=>toggleCompare(x.id));th.append(remove);headers.append(th);
+      }
+      head.append(headers);table.append(head);
+      const body=document.createElement("tbody");
+      const rows=[
+        {label:"Base rent / month",value:x=>money(x.rent),score:x=>Number(x.rent),min:true},
+        {label:"Annualized base rent",value:x=>money(Number(x.rent)*12),score:x=>Number(x.rent)*12,min:true},
+        {label:"Apartment type",value:x=>Number(x.bedrooms)===0?"Studio":"1 bedroom"},
+        {label:"Neighborhood (approx.)",value:x=>x.area||"Not reported"},
+        {label:"Floor area",value:x=>compareArea(x)!=null?Math.round(compareArea(x)).toLocaleString()+" sq ft":"Not reported"},
+        {label:"Bathrooms",value:compareBathrooms},
+        {label:"Base rent per sq ft / mo",value:x=>compareArea(x)!=null?money((Number(x.rent)/compareArea(x)).toFixed(2)):"Not reported",score:x=>compareArea(x)!=null?Number(x.rent)/compareArea(x):null,min:true},
+        {label:"Columbia straight-line distance",value:x=>Number.isFinite(campusDistance(x))?campusDistance(x).toFixed(2)+" miles":"Not reported",score:x=>Number.isFinite(campusDistance(x))?campusDistance(x):null,min:true},
+        {label:"Listing source & freshness",value:compareSource},
+        {label:"Broker fee",value:x=>feeReported(x)?"Reported no-fee":"Not reported"},
+        {label:"Entire private unit",value:x=>"Not independently verified"},
+        {label:"Walking to Columbia",link:x=>routeLink(x,"walking"),linkText:"View walking route ↗"},
+        {label:"Transit to Columbia",link:x=>routeLink(x,"transit"),linkText:"View transit route ↗"},
+        {label:"Original listing / address search",link:x=>safeUrl(x.url),linkText:x=>x.source_kind==="historical"?"Open historical listing ↗":"Search address ↗"}
+      ];
+      for(const row of rows){
+        const tr=document.createElement("tr");const label=text("th","row-label",row.label);
+        label.scope="row";tr.append(label);
+        const values=row.score?properties.map(row.score):[];
+        const known=values.filter(v=>v!=null&&Number.isFinite(v));
+        const best=row.min&&known.length===properties.length?Math.min(...known):null;
+        for(let i=0;i<properties.length;i++){
+          const x=properties[i],td=document.createElement("td");
+          if(row.link){
+            const url=row.link(x);
+            if(url){
+              const a=text("a","compare-table-link",typeof row.linkText==="function"?row.linkText(x):row.linkText);
+              a.href=url;a.target="_blank";a.rel="noopener noreferrer";td.append(a);
+            }else td.textContent="Not available";
+          }else td.textContent=row.value(x);
+          if(best!=null&&values[i]===best)td.classList.add("best-value");
+          tr.append(td);
+        }
+        body.append(tr);
+      }
+      table.append(body);host.append(table);
+    }
+    function openComparison(){
+      if(comparedListings().length<2)return;
+      renderCompareTable();
+      const dialog=$("#compare-dialog");
+      if(typeof dialog.showModal==="function")dialog.showModal();
+      else dialog.setAttribute("open","");
+    }
     function listingCard(x,idx){
       const card=text("article","listing-card","");
       const visual=text("div","listing-visual scene-"+(AREAS.indexOf(x.area)%4+1),"");
@@ -291,6 +494,12 @@
       const facts=text("div","card-facts","");if(x.bathrooms!==null&&x.bathrooms!==undefined&&x.bathrooms!=="")facts.append(text("span","",Number(x.bathrooms)+" bath"+(Number(x.bathrooms)===1?"":"s")));if(Number(x.sqft)>0)facts.append(text("span","",Math.round(Number(x.sqft)).toLocaleString()+" sq ft"));if(feeReported(x))facts.append(text("span","no-fee","✓ No fee reported"));if(photoAdvertised)facts.append(text("span","photo-ref","Photo references at posting"));
       const d=campusDistance(x);if(Number.isFinite(d))facts.append(text("span","campus-distance",d.toFixed(1)+" mi from Columbia · straight line"));
       body.append(facts);
+
+      const compareButton=text("button","compare-toggle","Compare +");
+      compareButton.type="button";compareButton.dataset.compareId=String(x.id);
+      compareButton.addEventListener("click",()=>toggleCompare(x.id));
+      compareButton.setAttribute("aria-label","Add "+(x.address||"apartment")+" to comparison");
+      body.append(compareButton);
       body.append(text("small","unit-disclaimer","Room shares excluded when identified · Entire-unit status and private kitchen/bath not independently verified"));
       const startPoint=Number.isFinite(Number(x.latitude))&&Number.isFinite(Number(x.longitude))&&x.latitude!=null&&x.longitude!=null
         ? String(x.latitude)+","+String(x.longitude) : String(x.address||"");
@@ -343,7 +552,7 @@
       const rcChecked=dateOnly(feedMetadata.rcChecked),fmMonth=feedMetadata.fmMonth||"unknown";const mode=$("#source").value;
       summary.textContent=(mode==="historical"?"FirstMover snapshot "+fmMonth+" · not live":mode==="rentcast"?"RentCast checked "+rcChecked+" · provider-reported active":"RentCast checked "+rcChecked+" · FirstMover "+fmMonth);
       $("#source-note").textContent=mode==="historical"?"FirstMover listings are historical. The geographic filter uses 2020 NYC NTA areas, with approximate smaller-neighborhood labels. Confirm any private-unit lease independently.":mode==="rentcast"?"RentCast is provider-reported, not guaranteed available. NYC 2020 NTA boundaries improve Manhattan inclusion, but smaller neighborhood labels are approximate. Verify the private-unit lease.":"Sources have different freshness. NYC 2020 NTA geography helps exclude other boroughs, but smaller neighborhood labels and private-unit status still require verification.";
-      cards.replaceChildren();if(!shown.length){const empty=text("div","empty","");empty.append(text("strong","",showSaved?"No saved apartments match these filters":"No matching listings"),text("div","",showSaved?"Save an apartment with the heart icon or loosen your filters.":"Try another neighborhood or source. If you've selected 'no-fee', note that many listings do not report fee status."));cards.append(empty);}else{const frag=document.createDocumentFragment();shown.forEach((x,i)=>frag.append(listingCard(x,i)));cards.append(frag);}refreshPins(shown);
+      cards.replaceChildren();if(!shown.length){const empty=text("div","empty","");empty.append(text("strong","",showSaved?"No saved apartments match these filters":"No matching listings"),text("div","",showSaved?"Save an apartment with the heart icon or loosen your filters.":"Try another neighborhood or source. If you've selected 'no-fee', note that many listings do not report fee status."));cards.append(empty);}else{const frag=document.createDocumentFragment();shown.forEach((x,i)=>frag.append(listingCard(x,i)));cards.append(frag);}refreshPins(shown);updateComparisonUI();
     }
     for(const id of ["source","area","beds","sort","noFee"])$("#"+id).addEventListener("change",render);
     $("#minRent").addEventListener("change",()=>{normalizeRentFields("min");render();});
@@ -356,12 +565,27 @@
     $("#all").addEventListener("click",()=>setSavedMode(false));$("#saved").addEventListener("click",()=>setSavedMode(true));
     $("#header-favorites").addEventListener("click",()=>setSavedMode(true));
     $("#split-view").addEventListener("click",()=>setListOnly(false));$("#list-view").addEventListener("click",()=>setListOnly(true));
+
+    $("#compare-open").addEventListener("click",openComparison);
+    $("#compare-clear").addEventListener("click",()=>{
+      compareIds=[];persistCompare();updateComparisonUI();
+      if($("#compare-dialog").open)$("#compare-dialog").close();
+    });
+    $("#compare-close").addEventListener("click",()=>{
+      const dialog=$("#compare-dialog");
+      if(typeof dialog.close==="function")dialog.close();
+      else dialog.removeAttribute("open");
+    });
     async function getJSON(path){try{const r=await fetch(path,{cache:"no-store"});return r.ok?await r.json():null;}catch(e){console.warn("Unable to load data",path,e);return null;}}
     Promise.all([getJSON("./data/listings.json"),getJSON("./data/rentcast.json"),getJSON("./data/approved-photos.json")]).then(([h,r,p])=>{
       approvedPhotos=p&&p.photos&&typeof p.photos==="object"&&!Array.isArray(p.photos)?p.photos:{};
       historical=Array.isArray(h?.listings)?h.listings.map(x=>({...x,source_kind:"historical"})):[];
       rentcast=Array.isArray(r?.listings)?r.listings.map(x=>({...x,source_kind:"rentcast"})):[];
-      listings=[...rentcast,...historical];feedMetadata={rcChecked:r?.checked_at_utc||"",fmMonth:h?.data_month||"",comparison:r?.comparison||null,rcResponseLimit:Boolean(r?.search_response_limit_hit||Object.values(r?.query_counts||{}).some(v=>Number(v?.returned)>=500))};
+      listings=[...rentcast,...historical];
+      const allowedIds=new Set(listings.filter(x=>!roomRental(x)&&Number(x.rent)>=2250&&Number(x.rent)<=3000).map(x=>String(x.id)));
+      const validCompare=compareIds.filter(id=>allowedIds.has(id));
+      if(validCompare.length!==compareIds.length){compareIds=validCompare;persistCompare();}
+      feedMetadata={rcChecked:r?.checked_at_utc||"",fmMonth:h?.data_month||"",comparison:r?.comparison||null,rcResponseLimit:Boolean(r?.search_response_limit_hit||Object.values(r?.query_counts||{}).some(v=>Number(v?.returned)>=500))};
       $("#source").value=rentcast.length?"rentcast":"historical";render();
     }).catch(e=>{console.error("Could not display listings",e);count.textContent="Listings unavailable";summary.textContent="Please check the refresh workflow.";});
   </script>
