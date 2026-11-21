@@ -6,7 +6,8 @@ const html=fs.readFileSync("site/index.html","utf8");
 const script=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1].trim()).find(Boolean);
 assert.ok(script,"Inline map script not found");
 const rentcast=JSON.parse(fs.readFileSync("site/data/rentcast.json","utf8"));
-const example=rentcast.listings[0];
+// The map shows the default "Newest advertised" sort, not JSON file order.
+const example=[...rentcast.listings].sort((a,b)=>String(b.listed_at||b.last_seen||"").localeCompare(String(a.listed_at||a.last_seen||"")))[0];
 assert.ok(example?.url?.startsWith("https:"),"Expected a saved RentCast listing URL");
 const historical={
   id:"historical-test-unit",source_kind:"historical",
