@@ -1,46 +1,43 @@
 # NYC Apartment Finder
 
-Free personal apartment research dashboard for a planned **August 2027** move near Columbia University.
+A personal, self-updating apartment search dashboard for an **August 2027** move near Columbia University.
 
-## Search preferences
+## Filters
 
-- Advertised monthly base rent **$3,000 maximum**
-- **Studio and one-bedroom** apartments
-- Manhattan: **Morningside Heights, Manhattan Valley, Manhattanville, Hamilton Heights, South Harlem, Northern Upper West Side, Central Harlem, Washington Heights**
-- New Jersey: **Fort Lee**
+- **Maximum base monthly rent:** $3,000 (fees/utilities may be extra)
+- **Apartment types:** Studio and one-bedroom
+- **Manhattan:** Morningside Heights, Manhattan Valley, Manhattanville, Hamilton Heights, South Harlem, Northern Upper West Side, Central Harlem, Washington Heights
+- **New Jersey:** Fort Lee
 
-## Launch the website
+## Live website
 
-1. Open **Settings → Pages** in this GitHub repository.
-2. Select **GitHub Actions** under **Build and deployment → Source**.
-3. Visit **Actions → Refresh data and publish site → Run workflow**. You might need to enable workflows in the Actions tab first.
-4. Once deployment succeeds, visit **https://michaelvriheas.github.io/nyc-apartment-finder/**.
+https://michaelvriheas.github.io/nyc-apartment-finder/
 
-If a run fails, inspect its job logs under **Actions**. For a private repo, GitHub Pages availability may depend on plan; this repo is currently public.
+## Data sources — clearly distinguished on the website
 
-## What is implemented
+1. **RentCast API:** Long-term rental listings with provider-reported `Active` status at the most recent API check. Searched via two queries: a circular area around Columbia and Fort Lee, NJ. Neighborhood assignments for Manhattan are **approximate** coordinate ranges, not official boundaries. The 500-listing upper-Manhattan API page limit can exclude listings; this is not an exhaustive search. RentCast does not guarantee currently available apartments or an original listing URL, so the site links to an address web search.
+2. **[FirstMover Open Data](https://www.firstmovernyc.com/open-data):** Free historical monthly CSV snapshots, prices as initially advertised. These records **do not** confirm availability or latest rent.
 
-- Responsive apartment listing cards
-- Neighborhood / base-rent / studio-vs-one-bedroom / advertised no-fee filters
-- Map markers using OpenStreetMap and Leaflet
-- Browser-local favorites
-- Link to original listing
-- Python importer that reads the newest **monthly** public FirstMover CSV and filters for your criteria
-- GitHub Actions workflow checking daily for newly posted CSV files and redeploying the site
+The site defaults to the RentCast feed when it has matching records. Choose a source in the drop-down to see the monthly historical data separately, or combine both for research.
 
-### Important limitation: not a live inventory
+## Automation and API usage safeguards
 
-The first feed comes from [FirstMover Open Data](https://www.firstmovernyc.com/open-data), published as **monthly historical rental snapshots** under CC0. Records reflect what was advertised at initial posting. Current price, status and move-in availability **are not confirmed**. The daily schedule checks for updated *monthly* files; it does not magically make the dataset live.
+GitHub Actions workflows:
+- Daily: fetch the newest publicly released monthly FirstMover file and redeploy the website.
+- Weekly (Mondays, UTC): run **two** RentCast listing queries, persist a small filtered JSON feed, then redeploy.
+- Manual: use **Actions → Refresh data and publish site → Run workflow** for an extra RentCast refresh.
 
-The published dataset primarily covers NYC. Fort Lee is configured as a search area, but source coverage may be limited or zero until an authorized free NJ source is added.
+**Important:** The RentCast Developer plan includes 50 free API requests per month, after which overage charges may apply. To minimize the chance of charges, `scripts/fetch_rentcast.py` implements a conservative limit of **20 attempts within any rolling 31 days**, tracked in the committed `.rentcast-budget.json` file. The workflow commits the quota reservation **before** making requests; if that push fails, no API request is made. This counter tracks only calls made by this project's workflow. It cannot block calls made outside this repository, and it is **not a provider-side hard spending cap**. Check the RentCast billing dashboard for your actual usage and billing period.
 
-There is no paid API, unauthorized web scraping, or hidden key in this prototype. In the future, we can add additional sources only after confirming their licensing and access terms. This site is a research tool, not an indication that any displayed apartment can be booked.
+The key is stored only in a GitHub Actions secret called `RENTCAST_API_KEY`. Never paste it in the repository, published JSON, or screenshots.
 
-## Project structure
+## Files
 
-- `site/index.html`: dashboard
-- `scripts/update_listings.py`: public data importer
-- `.github/workflows/publish.yml`: scheduled GitHub Pages publisher
-- `site/data/listings.json`: generated during the workflow run (not necessarily present on the repository branch)
+- `site/index.html`: searchable dashboard, map, source selector and local favorites
+- `scripts/update_listings.py`: FirstMover monthly historical-data importer
+- `scripts/fetch_rentcast.py`: RentCast API importer, filtering and budget reservation
+- `.github/workflows/publish.yml`: daily site deployment and weekly RentCast checks
+- `site/data/rentcast.json`: last filtered RentCast response published to the public repo
+- `.rentcast-budget.json`: rolling API request reservation ledger
 
-The website uses the published snapshot as a static JSON file. Favorites stay in the current browser rather than being synchronized.
+Favorites stay in the browser's local storage, not across devices. Apartment prices and statuses can change; verify all details with the listing provider before applying.
