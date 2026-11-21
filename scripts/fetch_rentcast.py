@@ -158,7 +158,8 @@ def fetch():
                 "url": search_url,
                 "link_label": "Search for listing ↗"
             }
-    # Compare only to the previous RentCast snapshot, never to FirstMover.
+    # Compare only to previous RentCast snapshots using the same search method.
+    # A coverage/methodology change resets the baseline (no false price badges).
     # This is a SAMPLE of the API search, not an exhaustive listing inventory:
     # a newly returned record may have existed before and a missing record may
     # simply have fallen beyond the first 500 results. Never infer a lease.
@@ -174,7 +175,7 @@ def fetch():
     prev_checked_at = prev_payload.get("checked_at_utc") if prev_payload and not method_changed else None
     previous = {
         str(item["id"]): item
-        for item in (prev_payload.get("listings", []) if prev_payload else [])
+        for item in (prev_payload.get("listings", []) if prev_payload and not method_changed else [])
         if isinstance(item, dict) and item.get("id") and item.get("area") != "Fort Lee" and MIN_RENT <= (maybe_num(item.get("rent")) or -1) <= MAX_RENT and not room_rental_reason(item)
     }
     checked_at = now().isoformat()
