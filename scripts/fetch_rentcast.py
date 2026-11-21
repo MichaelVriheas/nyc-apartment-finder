@@ -166,19 +166,80 @@ def fetch():
                 "url": search_url,
                 "link_label": "Search for listing ↗"
             }
+    # Compare only to the previous RentCast snapshot, never to FirstMover.
+    # This is a SAMPLE of the API search, not an exhaustive listing inventory:
+    # a newly returned record may have existed before and a missing record may
+    # simply have fallen beyond the first 500 results. Never infer a lease.
+    prev_payload = None
+    if OUTPUT.exists():
+        try:
+            prev_payload = json.loads(OUTPUT.read_text(encoding="utf-8"))
+        except (ValueError, OSError) as exc:
+            raise RuntimeError("Could not read prior RentCast snapshot; stopping rather than misleading users") from exc
+        if not isinstance(prev_payload, dict) or not isinstance(prev_payload.get("listings"), list):
+            raise RuntimeError("Prior RentCast snapshot invalid; stopping rather than misleading users")
+    prev_checked_at = prev_payload.get("checked_at_utc") if prev_payload else None
+    previous = {
+        str(item["id"]): item
+        for item in (prev_payload.get("listings", []) if prev_payload else [])
+        if isinstance(item, dict) and item.get("id") and item.get("area") != "Fort Lee"
+    }
+    checked_at = now().isoformat()
+    new_count = 0
+    drop_count = 0
+    increase_count = 0
+    for item in all_rows.values():
+        earlier = previous.get(item["id"])
+        item["first_seen_at"] = (earlier.get("first_seen_at") or prev_checked_at or checked_at) if earlier else checked_at
+        item["previous_rent"] = None
+        item["price_change"] = 0
+        item["change_at_utc"] = None
+        if earlier is None:
+            item["change_status"] = "newly_seen" if prev_checked_at else "baseline"
+            if prev_checked_at:
+                new_count += 1
+                item["change_at_utc"] = checked_at
+        else:
+            prior_price = maybe_num(earlier.get("rent"))
+            delta = item["rent"] - int(prior_price) if prior_price is not None else 0
+            if delta != 0:
+                item["previous_rent"] = int(prior_price)
+                item["price_change"] = delta
+                item["change_at_utc"] = checked_at
+                if delta < 0:
+                    item["change_status"] = "price_drop"
+                    drop_count += 1
+                else:
+                    item["change_status"] = "price_increase"
+                    increase_count += 1
+            else:
+                item["change_status"] = "unchanged"
+    not_found_count = len(set(previous) - {"rentcast-" + identifier for identifier in all_rows})
+    comparison = {
+        "baseline": not bool(prev_checked_at),
+        "previous_checked_at_utc": prev_checked_at,
+        "current_checked_at_utc": checked_at,
+        "previous_listing_count": len(previous),
+        "newly_found_count": new_count,
+        "price_drop_count": drop_count,
+        "price_increase_count": increase_count,
+        "not_found_count": not_found_count,
+        "coverage_warning": "Newly seen means absent from the previous saved search, not newly advertised. Not found means absent from this sampled query, not rented or inactive. The API may truncate the first 500 results."
+    }
     output = {
         "source": "RentCast rental listings API",
         "status": "provider_reported_active_at_check",
-        "checked_at_utc": now().isoformat(),
+        "checked_at_utc": checked_at,
         "warning": "Provider-reported active status is not a guarantee of availability. Verify independently. Neighborhood classifications are approximate.",
         "query_counts": counts,
+        "comparison": comparison,
         "requests_reserved_in_31_days": sum(int(x["calls"]) for x in entries),
         "listings": sorted(all_rows.values(), key=lambda r: r["last_seen"], reverse=True)
     }
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(output, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print("RentCast test results (no secret or addresses shown): " + json.dumps(counts))
-    print(f"Published {len(all_rows)} provider-reported active rental listings; not independently verified")
+    print(f"Published {len(all_rows)} sampled active records. Changes vs preceding snapshot: newly seen={new_count}, lower price={drop_count}, higher price={increase_count}, not found={not_found_count}. Not a verified rental inventory.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
