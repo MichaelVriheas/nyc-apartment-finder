@@ -82,5 +82,17 @@ for(const removed of ['id="laundry"','laundryStorageKey','laundryStatus(x)',
                       'approved-amenities.json','I checked: both in unit']){
   assert.ok(!html.includes(removed),"Removed laundry UI must stay absent: "+removed);
 }
+// Map popups should support hover, keyboard/tap selection and working source links.
+for(const key of ['function buildMapPreview(x)','function focusListingFromMap(id)',
+  'marker.on("mouseover"','marker.on("mouseout"','marker.on("click"',
+  'marker.on("popupopen"','marker.on("popupclose"',
+  'map-listing-popup','map-preview-actions','map-preview-link',
+  'View apartment card','Original listing ↗','Search address ↗',
+  'x.source_kind==="historical"?"Original listing ↗":"Search address ↗"',
+  'marker.getPopup()?.getElement()','cancelMapPreviewClose()',
+  'card.dataset.listingId=String(x.id)','keyboard:true',
+  'Hover over a pin for apartment details']){
+  assert.ok(html.includes(key),"Interactive map feature missing: "+key);
+}
 assert.ok(!html.includes("Fort Lee"), "Removed search area must not appear");
 console.log("Passed JS syntax and room-rental UI guard checks.");
