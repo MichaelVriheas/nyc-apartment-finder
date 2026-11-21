@@ -12,6 +12,7 @@ import urllib.error
 from datetime import datetime, timezone
 from pathlib import Path
 from scripts.unit_filter import room_rental_reason
+from scripts.areas import classify_area
 
 API = "https://api.github.com/repos/benfwalla/firstmover-open-data-project/contents/public/data"
 RAW = "https://raw.githubusercontent.com/benfwalla/firstmover-open-data-project/main/public/data/"
@@ -37,31 +38,8 @@ def number(value):
         return None
 
 def area(row):
-    neighborhood = (row.get("neighborhood") or "").lower().strip()
-    state = (row.get("state") or "").upper().strip()
-    street = (row.get("street") or "").lower()
-    if state not in ("NY", ""):
-        return None
-    aliases = {
-        "Morningside Heights": ("morningside heights",),
-        "Manhattan Valley": ("manhattan valley", "bloomingdale"),
-        "Manhattanville": ("manhattanville",),
-        "Hamilton Heights": ("hamilton heights",),
-        "South Harlem": ("south harlem", "southwest harlem", "southeast harlem"),
-        "Central Harlem": ("central harlem",),
-        "Washington Heights": ("washington heights",),
-        "Northern Upper West Side": ("upper west side",),
-    }
-    # Without coordinates, an entire UWS label is not sufficiently precise.
-    # Use latitude for northern UWS, and label everything else only if explicit.
-    lat = number(row.get("latitude"))
-    for label, names in aliases.items():
-        if neighborhood in names:
-            if label == "Northern Upper West Side" and (lat is None or not 40.789 <= lat <= 40.806):
-                return None
-            return label
-    # Generic Harlem may be South or Central: do not guess.
-    return None
+    """Geographically classify by NYC DCP 2020 NTA polygons, never broad NYC tags."""
+    return classify_area(row.get("latitude"), row.get("longitude"), row.get("state"))
 
 def photo_identifiers(row):
     """Preserve FirstMover's published identifiers only; do not download/serve images.
@@ -123,6 +101,8 @@ def main():
         listings[identifier] = {
             "id": identifier,
             "area": place,
+            "area_estimated": True,
+            "boundary_method": "NYC DCP 2020 NTA (sub-neighborhoods approximate)",
             "address": (row.get("street") or "Address not provided").strip(),
             "unit": (row.get("unit") or "").strip(),
             "rent": int(price),
@@ -144,6 +124,7 @@ def main():
     cleaned = sorted(listings.values(), key=lambda x: x["listed_at"], reverse=True)[:2500]
     payload = {
         "source": "FirstMover Open Data (CC0)",
+        "geography_source": "NYC DCP 2020 NTA polygons; smaller local area labels approximated",
         "source_url": "https://www.firstmovernyc.com/open-data",
         "data_month": month[:-4],
         "rent_min": MIN_RENT,
@@ -152,7 +133,7 @@ def main():
         "status": "historical_snapshot_unverified",
         "notice": "These were advertised when first posted. They may no longer be available and prices may have changed. Not a live inventory.",
         "photo_notice": "Photo IDs are source metadata only. This site does not reproduce original listing photographs without permission; visit the original listing for pictures.",
-        "coverage_note": "Neighborhood names follow published tags. Northern Upper West Side uses a geographic latitude approximation. Only the eight selected Manhattan search areas are included.",
+        "coverage_note": "Geographic inclusion uses NYC DCP 2020 NTA statistical polygons. Northern Upper West Side versus Manhattan Valley is a custom approximation. Only the eight selected Manhattan search areas are included.",
         "unit_policy": "Room rentals and co-living listings are removed when identifiable from source fields; verify entire-unit and private kitchen/bathroom with the original listing.",
         "rooms_excluded": filtered_rooms,
         "listings": cleaned
