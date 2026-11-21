@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#132b49">
-  <meta name="description" content="Explore studio and one-bedroom rental listings near Columbia University and Fort Lee, with a map, filters, and clearly labeled data sources.">
-  <title>NYC Apartment Finder | Columbia &amp; Fort Lee</title>
+  <meta name="description" content="Explore studio and one-bedroom rental listings near Columbia University, with a map, filters, and clearly labeled data sources.">
+  <title>NYC Apartment Finder | Columbia Area</title>
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
@@ -123,13 +123,13 @@
     <div class="header-skyline" aria-hidden="true"><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span><span class="skyline-line"></span></div>
     <div class="container">
       <div class="masthead">
-        <div class="brand"><span class="brand-mark"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M3 32h30M7 32V16h7v16m6 0V8h8v24M14 32V23h6v9M24 8V3M9 20h3m-3 5h3m12-12h2m-2 6h2m-2 6h2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><h1>NYC Apartment Finder</h1><p>Rental research near Columbia University &amp; Fort Lee</p></div></div>
+        <div class="brand"><span class="brand-mark"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M3 32h30M7 32V16h7v16m6 0V8h8v24M14 32V23h6v9M24 8V3M9 20h3m-3 5h3m12-12h2m-2 6h2m-2 6h2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><h1>NYC Apartment Finder</h1><p>Rental research near Columbia University</p></div></div>
         <nav class="header-nav" aria-label="Main navigation"><a href="#filters" class="nav-link active"><svg><use href="#i-search"/></svg><span class="nav-label">Explore rentals</span></a><a href="#results" class="nav-link" id="header-favorites"><svg><use href="#i-heart"/></svg><span class="nav-label">Saved favorites</span><span class="fav-bubble" id="fav-total">0</span></a></nav>
       </div>
       <div class="overview" aria-label="Search preferences">
         <div class="chip"><svg><use href="#i-wallet"/></svg> Max base rent <b>$3,000</b></div>
         <div class="chip"><svg><use href="#i-bed"/></svg> Studio + <b>1 bedroom</b></div>
-        <div class="chip"><svg><use href="#i-pin"/></svg> <b>9</b> search areas</div>
+        <div class="chip"><svg><use href="#i-pin"/></svg> <b>8</b> search areas</div>
         <div class="chip"><svg><use href="#i-layers"/></svg> <b>RentCast + FirstMover</b></div>
       </div>
     </div>
@@ -139,7 +139,7 @@
       <div class="filter-title"><div class="filter-heading"><svg><use href="#i-sliders"/></svg> Refine your search</div><span class="filter-meta">Automatic source updates · August 2027 move goal</span></div>
       <div class="filter-grid">
         <div class="field"><label for="source">Listing source</label><select id="source"><option value="rentcast">RentCast · recently checked</option><option value="historical">FirstMover · historical</option><option value="both">Both data sources</option></select></div>
-        <div class="field"><label for="area">Neighborhood</label><select id="area"><option value="">All 9 areas</option></select></div>
+        <div class="field"><label for="area">Neighborhood</label><select id="area"><option value="">All 8 areas</option></select></div>
         <div class="field"><label for="rent">Max base rent ($)</label><input id="rent" type="number" min="500" max="3000" step="100" value="3000" inputmode="numeric"></div>
         <div class="field"><label for="beds">Apartment type</label><select id="beds"><option value="all">Studio + 1 bedroom</option><option value="0">Studio only</option><option value="1">1 bedroom only</option></select></div>
         <div class="field"><label for="sort">Sort</label><select id="sort"><option value="new">Newest advertised</option><option value="low">Rent: low to high</option><option value="high">Rent: high to low</option><option value="size">Largest floor area</option></select></div>
@@ -149,7 +149,7 @@
     </section>
     <div class="under-filter"><div class="disclaimer"><svg><use href="#i-alert"/></svg><span id="source-note">RentCast activity is provider-reported at the last data check, not independently confirmed. Check rent, fees and availability with the landlord or agent.</span></div><button class="reset-btn" id="reset" type="button">Reset filters</button></div>
     <div class="workspace" id="workspace">
-      <aside class="map-panel" aria-label="Apartment locations"><div class="map-title"><span class="panel-heading">Explore the map</span><span class="map-caption">Columbia · Upper Manhattan · Fort Lee</span></div><div id="map" role="region" aria-label="Interactive rental listing map"></div><div class="map-footer"><span><i class="legend-dot school"></i> Columbia campus</span><span><i class="legend-dot"></i> RentCast</span><span><i class="legend-dot historic"></i> Historical</span></div></aside>
+      <aside class="map-panel" aria-label="Apartment locations"><div class="map-title"><span class="panel-heading">Explore the map</span><span class="map-caption">Columbia · Upper Manhattan</span></div><div id="map" role="region" aria-label="Interactive rental listing map"></div><div class="map-footer"><span><i class="legend-dot school"></i> Columbia campus</span><span><i class="legend-dot"></i> RentCast</span><span><i class="legend-dot historic"></i> Historical</span></div></aside>
       <section class="results-panel" id="results" aria-label="Search results">
         <div class="results-toolbar"><div class="toolbar-main"><div class="tab-group" role="group" aria-label="Listing selection"><button type="button" class="tab active" id="all" aria-pressed="true">All listings <span id="all-total">(0)</span></button><button type="button" class="tab" id="saved" aria-pressed="false">♡ Saved <span id="saved-total">(0)</span></button></div><div class="view-toggle" role="group" aria-label="Display mode"><button type="button" class="view-button active" id="split-view" aria-label="Show map and listing cards" aria-pressed="true"><svg><use href="#i-map"/></svg> Map + cards</button><button type="button" class="view-button" id="list-view" aria-label="Show listing cards only" aria-pressed="false"><svg><use href="#i-list"/></svg> Cards only</button></div></div><div class="results-overview"><div><div class="results-title" id="count" role="status">Loading apartments…</div><p class="results-subtitle" id="snapshot">Fetching the latest stored datasets.</p></div><div class="source-counts" id="source-counts"></div></div></div>
         <div class="card-grid" id="cards" aria-live="polite"></div>
@@ -160,7 +160,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     "use strict";
-    const AREAS=["Morningside Heights","Manhattan Valley","Manhattanville","Hamilton Heights","South Harlem","Northern Upper West Side","Central Harlem","Washington Heights","Fort Lee"];
+    const AREAS=["Morningside Heights","Manhattan Valley","Manhattanville","Hamilton Heights","South Harlem","Northern Upper West Side","Central Harlem","Washington Heights"];
     const $=s=>document.querySelector(s);
     const cards=$("#cards"), count=$("#count"), summary=$("#snapshot"), workspace=$("#workspace");
     for (const area of AREAS) {const o=document.createElement("option");o.value=o.textContent=area;$("#area").append(o);}
@@ -240,7 +240,7 @@
     }
     function refreshPins(list){if(!map||!markers)return;markers.clearLayers();markerIndex.clear();const coords=[];
       for(const x of list){const lat=Number(x.latitude),lng=Number(x.longitude);if(x.latitude==null||x.longitude==null||!Number.isFinite(lat)||!Number.isFinite(lng)||lat<40||lat>42||lng< -75||lng> -72)continue;
-        const dot=text("div","map-price-marker"+(x.source_kind==="historical"?" historic":"")+(x.area==="Fort Lee"?" fort":""),"");
+        const dot=text("div","map-price-marker"+(x.source_kind==="historical"?" historic":""),"");
         const marker=L.marker([lat,lng],{icon:L.divIcon({className:"",html:dot.outerHTML,iconSize:[16,16],iconAnchor:[8,8]})});
         const pop=text("div","","");pop.append(text("strong","",money(x.rent)+" / month"),text("div","",(Number(x.bedrooms)===0?"Studio":"1 bedroom")+" · "+(x.area||"Unknown area")),text("div","",x.address||"Address not provided"),text("div","",x.source_kind==="rentcast"?"Provider-listed active at last check":"Historical advertisement"));
         marker.bindPopup(pop);marker.addTo(markers);markerIndex.set(String(x.id),marker);coords.push([lat,lng]);
