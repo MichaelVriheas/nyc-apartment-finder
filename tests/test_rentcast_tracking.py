@@ -9,7 +9,8 @@ from unittest.mock import patch
 from scripts import fetch_rentcast as mod
 from scripts.unit_filter import room_rental_reason
 from scripts.rent_history import make_snapshot, update_history, load_history, AREAS
-from scripts.areas import classify_area, polygons, NTA_TO_AREA
+from scripts.areas import classify_area, polygons, NTA_TO_AREA, south_of_gwb, GWB_POLICY
+from scripts.update_listings import area as imported_area
 
 NOW = datetime.now(timezone.utc).isoformat()
 def fixture(identifier, price, latitude=40.808, longitude=-73.96, state="NY"):
@@ -112,6 +113,19 @@ class RentcastTrackingTests(unittest.TestCase):
         self.assertEqual(result["comparison"]["not_found_count"],0)
         self.assertEqual(result["listings"][0]["change_status"],"baseline")
 
+    def test_bridge_boundary_excludes_northern_rentcast_units(self):
+        north = fixture("north-of-bridge", 2750, latitude=40.851083, longitude=-73.940032)
+        south = fixture("south-of-bridge", 2550, latitude=40.846315, longitude=-73.937177)
+        with patch.object(mod,"retrieve",return_value=[north,south]) as retrieve:
+            mod.fetch()
+        result=json.loads(mod.OUTPUT.read_text())
+        self.assertEqual(retrieve.call_count, 2)
+        self.assertEqual([x["id"] for x in result["listings"]],["rentcast-south-of-bridge"])
+        self.assertEqual(result["geographic_policy"],GWB_POLICY)
+        history=json.loads(mod.HISTORY_OUTPUT.read_text())
+        self.assertEqual(history["snapshots"][0]["total_count"],1)
+        self.assertEqual(history["snapshots"][0]["geographic_policy"],GWB_POLICY)
+
     def test_fetch_without_reservation_does_not_call_api(self):
         mod.LEDGER.write_text(json.dumps({"entries":[]}))
         with patch.object(mod,"retrieve") as retrieve:
@@ -179,6 +193,17 @@ class RentHistoryTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 update_history(changed,target)
 
+    def test_history_rejects_above_bridge_records(self):
+        p={"checked_at_utc":"2026-11-24T14:00:00Z",
+           "geographic_policy":GWB_POLICY,
+           "listings":[{"source_kind":"rentcast","area":"Washington Heights",
+                        "rent":2500,"bedrooms":1,"latitude":40.851083,
+                        "longitude":-73.940032}]}
+        with self.assertRaises(ValueError):
+            make_snapshot(p)
+        p["listings"][0].update({"latitude":40.846315,"longitude":-73.937177})
+        self.assertEqual(make_snapshot(p)["total_count"],1)
+
     def test_invalid_market_rows_rejected(self):
         p={"checked_at_utc":"2026-11-21T12:00:00Z",
            "listings":[{"source_kind":"historical","area":"Morningside Heights","rent":2500,"bedrooms":0}]}
@@ -203,6 +228,15 @@ class NeighborhoodPolygonTests(unittest.TestCase):
         self.assertEqual(classify_area(40.826,-73.947,"NY"),"Hamilton Heights")
         self.assertEqual(classify_area(40.819,-73.945,"NY"),"Central Harlem")
 
+    def test_sloped_bridge_boundary_keeps_southern_washington_heights(self):
+        self.assertTrue(south_of_gwb(40.846315,-73.937177))  # W 176th Street
+        self.assertFalse(south_of_gwb(40.851083,-73.940032)) # W 181st Street
+        self.assertFalse(south_of_gwb(40.851027,-73.942044)) # Haven Avenue near bridge
+        self.assertEqual(classify_area(40.846315,-73.937177,"NY"),"Washington Heights")
+        self.assertIsNone(classify_area(40.851083,-73.940032,"NY"))
+        self.assertIsNone(imported_area({"latitude":40.851083,"longitude":-73.940032,"state":"NY"}))
+        self.assertEqual(imported_area({"latitude":40.846315,"longitude":-73.937177,"state":"NY"}),"Washington Heights")
+
     def test_inwood_and_bronx_are_excluded(self):
         self.assertIsNone(classify_area(40.877,-73.928,"NY"))
         self.assertIsNone(classify_area(40.806,-73.925,"NY"))
@@ -224,6 +258,8 @@ class NeighborhoodPolygonTests(unittest.TestCase):
         circles=[(float(q["latitude"]),float(q["longitude"]),float(q["radius"])) for _,q in mod.SEARCHES]
         for feature in polygons():
             for lon,lat in vertices(feature["geometry"]["coordinates"]):
+                if not south_of_gwb(lat,lon):
+                    continue
                 self.assertTrue(any(miles(lat,lon,a,b)<=radius+0.01 for a,b,radius in circles),
                                 msg=feature["properties"]["ntaname"])
 
