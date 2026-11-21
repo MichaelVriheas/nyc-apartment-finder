@@ -8,6 +8,7 @@ import json
 import os
 import re
 import urllib.request
+import urllib.error
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -61,12 +62,24 @@ def area(row):
     return None
 
 def main():
-    files = json.loads(fetch(API))
-    months = sorted([f["name"] for f in files if re.fullmatch(r"20\d{2}-\d{2}\.csv", f.get("name", ""))], reverse=True)
-    if not months:
-        raise RuntimeError("No monthly datasets found")
-    month = months[0]
-    raw = fetch(RAW + month)
+    # Use predictable direct public CSV URLs, bypassing GitHub API directory
+    # rate limits. Recent monthly data may not be published until next month.
+    current = datetime.now(timezone.utc)
+    raw = None
+    month = None
+    for months_back in range(6):
+        serial = current.year * 12 + current.month - 1 - months_back
+        candidate = f"{serial // 12:04d}-{serial % 12 + 1:02d}.csv"
+        try:
+            raw = fetch(RAW + candidate)
+            month = candidate
+            break
+        except urllib.error.HTTPError as exc:
+            if exc.code == 404:
+                continue
+            raise
+    if raw is None or month is None:
+        raise RuntimeError("No recent FirstMover monthly data was available")
     # UTF-8 BOM tolerant, stream CSV lines from fetched monthly snapshot
     reader = csv.DictReader(io.StringIO(raw.decode("utf-8-sig")))
     listings = {}
