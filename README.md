@@ -33,6 +33,14 @@ To keep the old snapshot from showing obviously shared rentals, the frontend als
 
 For location comparison the cards also show the **straight-line distance** from the listed coordinates to Columbia's Morningside campus, plus a sort option. **Walking route** and **Transit route** links open Google Maps from each listing to Columbia's Broadway/116th Street entrance. Google Maps calculates live, route-specific travel times when opened; this website does not store those times or guarantee future (August 2027) service. Routing links use [free Maps URLs](https://developers.google.com/maps/documentation/urls/get-started), **not a billable Google Maps Directions API key**.
 
+## Interactive map apartment previews
+
+The apartment map supports a **hover preview** of each visible pin on desktop and **tap/click to keep the preview open** on touch, mobile and keyboard (pins support keyboard activation). The preview shows the **monthly advertised base rent, unit type, neighborhood, address**, and reported size/bathrooms when available. It makes status transparency explicit: **RentCast** means provider-reported active but unverified, and **FirstMover** means a historical advertisement, not current availability.
+
+Each popup has a **View apartment card** button that scrolls to and highlights the corresponding listing on the page, plus an external link. For FirstMover this opens the **original listing** (which might be gone), while RentCast provides an accurately labeled **Search address** web search because its API response does not guarantee an original listing deep link. The popup remains open briefly when moving from the pin to the clickable links; touch/click keeps it open until dismissed or another marker is selected. The page's map and listings still obey all rent, source, geographic, and favorite filters. No new API calls or map subscriptions are required.
+
+The GitHub Actions workflow runs `tests/check_map.cjs` in addition to first-load and JavaScript syntax checks, to prevent regressions affecting marker events, popup content, links or switching between historical and RentCast listings.
+
 ## Side-by-side apartment comparisons
 
 Select **Compare +** on up to **three** listing cards. Once two listings are selected, use the bottom comparison dock's **Compare side by side** button to review their most recent stored data in a responsive table. Compare choices persist as listing IDs in the **same browser** using `localStorage`, independently of saved favorites. They continue working across source, neighborhood, and favorite filters; if a property disappears from the refreshed feeds, its comparison selection is removed rather than retaining outdated rental figures. Use the dock or modal's Remove controls to change a selection, or Clear to reset.
