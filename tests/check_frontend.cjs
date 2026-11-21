@@ -76,5 +76,34 @@ const lastSaved=history.snapshots.find(p=>p.checked_at_utc===current.checked_at_
 assert.ok(lastSaved,"Current stored check must have a real Market Insights observation");
 assert.equal(lastSaved.total_count,current.listings.length,"Market Insights count must match the saved listing sample");
 assert.equal(lastSaved.geographic_policy,current.geographic_policy,"Market Insights must enforce same geography");
+
+// In-unit laundry is an *optional, evidence-only* filter; missing metadata
+// must stay "unknown", never be silently treated as "does not have it".
+for(const key of [
+  'id="laundry"','id="laundry-filter-status"',
+  'value="yes">Only marked or documented in-unit washer',
+  'const laundryStorageKey="nyc-apartment-laundry-checks-v1"',
+  'const documentedLaundry=x=>','const laundryStatus=x=>',
+  'function markLaundry(id,value)', 'localStorage.setItem(laundryStorageKey',
+  'v.in_unit_washer_dryer!==true', 'safeUrl(v.source_url)',
+  'I checked: both in unit','I checked: not both in unit','Not checked',
+  'laundryStatus(x).value==="yes"','approved-amenities.json',
+  'No confirmed in-unit washer & dryer matches',
+  '{label:"In-unit washer & dryer",value:x=>laundryStatus(x).label}'
+])assert.ok(html.includes(key),"Missing unit-laundry safeguard: "+key);
+
+const approved=JSON.parse(fs.readFileSync("site/data/approved-amenities.json","utf8"));
+assert.ok(approved.listings && typeof approved.listings==="object"&&!Array.isArray(approved.listings),
+          "Approved amenity manifest must contain a listings object");
+for(const [id,claim] of Object.entries(approved.listings)){
+  assert.ok(id.length>0 && claim.in_unit_washer_dryer===true,
+            "Every approved amenity must confirm two in-unit appliances");
+  assert.match(claim.source_url||"",/^https:\/\//,"Amenity evidence must have a direct HTTPS source");
+  assert.match(claim.checked_at||"",/^\d{4}-\d{2}-\d{2}$/,"Amenity evidence must have a checked date");
+  assert.ok((claim.evidence_note||"").trim().length>=12,"Amenity evidence must be specific");
+}
+// No existing RentCast record has confirmed washer AND dryer evidence.
+assert.ok(current.listings.every(x=>x.in_unit_washer_dryer!==true),
+          "Do not mark legacy RentCast listings as having in-unit laundry without evidence");
 assert.ok(!html.includes("Fort Lee"), "Removed search area must not appear");
 console.log("Passed JS syntax and room-rental UI guard checks.");
