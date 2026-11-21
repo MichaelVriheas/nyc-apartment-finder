@@ -38,8 +38,8 @@ def area(row):
     neighborhood = (row.get("neighborhood") or "").lower().strip()
     state = (row.get("state") or "").upper().strip()
     street = (row.get("street") or "").lower()
-    if "fort lee" in neighborhood and state in ("", "NJ"):
-        return "Fort Lee"
+    if state not in ("NY", ""):
+        return None
     aliases = {
         "Morningside Heights": ("morningside heights",),
         "Manhattan Valley": ("manhattan valley", "bloomingdale"),
@@ -143,7 +143,7 @@ def main():
         "status": "historical_snapshot_unverified",
         "notice": "These were advertised when first posted. They may no longer be available and prices may have changed. Not a live inventory.",
         "photo_notice": "Photo IDs are source metadata only. This site does not reproduce original listing photographs without permission; visit the original listing for pictures.",
-        "coverage_note": "Neighborhood names follow published tags. Northern Upper West Side uses a geographic latitude approximation. Fort Lee may have no rows in this NYC-focused dataset.",
+        "coverage_note": "Neighborhood names follow published tags. Northern Upper West Side uses a geographic latitude approximation. Only the eight selected Manhattan search areas are included.",
         "listings": cleaned
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
