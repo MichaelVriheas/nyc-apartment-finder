@@ -209,9 +209,9 @@
     const roomRental=x=>{
       if(x.bathrooms===0||x.bathrooms==="0"||x.unit_scope==="room_only")return true;
       const unit=String(x.unit||"").trim();
-      if(/^(?:room|rm|bedroom|bedspace)\\s*[-#:]?\\s*[a-z0-9]+\\b/i.test(unit))return true;
+      if(/^(?:room|rm|bedroom|bedspace)\s*[-#:]?\s*[a-z0-9]+\b/i.test(unit))return true;
       const desc=[x.address,x.title,x.headline,x.description].map(v=>String(v||"")).join(" ");
-      return /\\b(?:private room|single room|room for rent|room available|bedroom for rent|shared (?:apartment|flat|house|housing|bedroom|bathroom|kitchen|living|space)|roommates? (?:wanted|needed|welcome)|co[- ]?living|room\\s?share|house\\s?share|bed\\s?space|by the room|per bedroom|room in (?:a |an )?(?:shared )?(?:apartment|home|house|flat))\\b/i.test(desc);
+      return /\b(?:private room|single room|room for rent|room available|bedroom for rent|shared (?:apartment|flat|house|housing|bedroom|bathroom|kitchen|living|space)|roommates? (?:wanted|needed|welcome)|co[- ]?living|room\s?share|house\s?share|bed\s?space|by the room|per bedroom|room in (?:a |an )?(?:shared )?(?:apartment|home|house|flat))\b/i.test(desc);
     };
     function addPinMap(){
       if(typeof L==="undefined"){const el=$("#map");el.classList.add("map-empty");el.textContent="Map temporarily unavailable. You can still browse the cards.";return;}
