@@ -61,5 +61,20 @@ for(const record of history.snapshots){
   assert.ok(all.median==null || (all.median>=2250&&all.median<=3000),"Observed median must fit the advertised price band");
   assert.equal(Object.keys(record.neighborhoods||{}).length,8,"Each observation needs the 8 areas");
 }
+// Geographic policy must be reflected in both pages and all published RentCast data.
+assert.ok(html.includes("const southOfGWBridge=x=>"),"Marketplace needs GW Bridge coordinate cutoff");
+assert.ok(html.includes("historical=Array.isArray(h?.listings)?h.listings.filter(southOfGWBridge)"),"Historical cards must honor cutoff");
+assert.ok(html.includes("rentcast=Array.isArray(r?.listings)?r.listings.filter(southOfGWBridge)"),"RentCast cards must honor cutoff");
+assert.ok(insights.includes("<span>South of GW Bridge</span>"),"Market Insights must show the new scope");
+const current=JSON.parse(fs.readFileSync("site/data/rentcast.json","utf8"));
+const line=lon=>40.848624+(lon+73.937370)*((40.849438-40.848624)/(-73.939025+73.937370));
+assert.equal(current.geographic_policy,"south-of-george-washington-bridge-approach-v1");
+for(const x of current.listings||[]){
+  assert.ok(Number(x.latitude)<=line(Number(x.longitude))+1e-10, "Stored listing north of GW Bridge: "+x.id);
+}
+const lastSaved=history.snapshots.find(p=>p.checked_at_utc===current.checked_at_utc);
+assert.ok(lastSaved,"Current stored check must have a real Market Insights observation");
+assert.equal(lastSaved.total_count,current.listings.length,"Market Insights count must match the saved listing sample");
+assert.equal(lastSaved.geographic_policy,current.geographic_policy,"Market Insights must enforce same geography");
 assert.ok(!html.includes("Fort Lee"), "Removed search area must not appear");
 console.log("Passed JS syntax and room-rental UI guard checks.");
