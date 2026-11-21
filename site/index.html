@@ -40,10 +40,10 @@
     .filter-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
     .filter-heading{display:flex;align-items:center;gap:8px;font-weight:800;color:#203c57;font-size:14px}
     .filter-meta{color:var(--muted);font-size:12px}
-    .filter-grid{display:grid;grid-template-columns:minmax(144px,1.35fr) minmax(140px,1.15fr) minmax(106px,.75fr) minmax(106px,.75fr) minmax(125px,1fr) minmax(128px,.95fr) auto auto;gap:11px;align-items:end}
+    .filter-grid{display:grid;grid-template-columns:minmax(144px,1.35fr) minmax(140px,1.15fr) minmax(106px,.75fr) minmax(106px,.75fr) minmax(125px,1fr) minmax(128px,.95fr) auto;gap:11px;align-items:end}
     .field{min-width:0}.field label{display:block;font-weight:750;font-size:11px;text-transform:uppercase;letter-spacing:.055em;margin-bottom:7px;color:#65748a}
     .field input,.field select{width:100%;height:41px;min-width:0;border:1px solid #d5dfe9;border-radius:9px;color:var(--navy);background-color:#fff;padding:0 12px;outline-color:var(--teal);font-size:13px;font-weight:630}
-    .field select{padding-right:20px}.fee-field{padding-bottom:4px}.fee-check{min-height:38px;display:flex;gap:8px;align-items:center;white-space:nowrap;font-weight:630;color:#40536c;font-size:12px}.fee-check input{accent-color:var(--teal);width:17px;height:17px;cursor:pointer}
+    .field select{padding-right:20px}
     .action-btn{background:var(--navy);border:1px solid var(--navy);border-radius:10px;color:white;min-height:41px;padding:0 15px;font-weight:750;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}.action-btn:hover{background:#1f476b}
 
     .under-filter{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 2px 16px}
@@ -140,10 +140,10 @@
     .listing-card.map-highlight{border-color:#158d8e;box-shadow:0 0 0 3px rgba(18,135,137,.15),0 6px 25px #123a5622}
     @media(prefers-reduced-motion:reduce){.map-price-marker{transition:none}}
     @media(min-width:1600px){.card-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.listing-visual{height:165px}}
-    @media(max-width:1350px){.filter-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.fee-field{align-self:end}.action-btn{align-self:end}.workspace{grid-template-columns:minmax(290px,39%) minmax(0,1fr)}}
+    @media(max-width:1350px){.filter-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.action-btn{align-self:end}.workspace{grid-template-columns:minmax(290px,39%) minmax(0,1fr)}}
     @media(max-width:1050px){.card-grid{grid-template-columns:1fr}.workspace{grid-template-columns:minmax(280px,42%) minmax(0,1fr)}.header-skyline{display:none}}
     @media(max-width:760px){.container{width:min(100% - 24px,650px)}.masthead{min-height:90px}.brand-mark{width:45px;height:45px}.brand-mark svg{width:27px;height:27px}.brand h1{font-size:24px}.brand p{font-size:11px}.header-nav .nav-link:not(.active){padding:9px}.header-nav .nav-link:not(.active) .nav-label{display:none}.nav-link{padding:9px}.nav-link .fav-bubble{display:none}.overview{padding:11px 0 15px;gap:8px}.chip{padding:8px 11px;font-size:11px}.page-main{padding-top:13px}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.filter-panel{padding:14px}.filter-meta{display:none}.workspace{grid-template-columns:1fr}.map-panel{position:static}.map-panel #map{min-height:320px;height:360px}.card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.listing-visual{height:135px}}
-    @media(max-width:560px){.masthead{gap:10px}.brand h1{font-size:21px}.brand-mark{width:40px;height:40px}.brand{gap:10px}.header-nav .nav-link.active{padding:8px 9px}.header-nav .nav-link .nav-label{display:none}.chip{width:calc(50% - 4px);justify-content:flex-start}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-grid .field:first-child{grid-column:1/-1}.filter-grid .fee-field{grid-column:1}.filter-grid .action-btn{grid-column:2}.under-filter{align-items:flex-start}.card-grid{grid-template-columns:1fr}.listing-visual{height:160px}.tab{padding:8px 10px;font-size:12px}.view-button{font-size:0;gap:0}.view-button svg{width:17px;height:17px}.results-title{font-size:18px}.results-toolbar{padding:12px}.map-panel #map{height:310px;min-height:310px}}
+    @media(max-width:560px){.masthead{gap:10px}.brand h1{font-size:21px}.brand-mark{width:40px;height:40px}.brand{gap:10px}.header-nav .nav-link.active{padding:8px 9px}.header-nav .nav-link .nav-label{display:none}.chip{width:calc(50% - 4px);justify-content:flex-start}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-grid .field:first-child{grid-column:1/-1}.filter-grid .action-btn{grid-column:2}.under-filter{align-items:flex-start}.card-grid{grid-template-columns:1fr}.listing-visual{height:160px}.tab{padding:8px 10px;font-size:12px}.view-button{font-size:0;gap:0}.view-button svg{width:17px;height:17px}.results-title{font-size:18px}.results-toolbar{padding:12px}.map-panel #map{height:310px;min-height:310px}}
 
     /* Side-by-side comparison: self-contained, responsive, no extra API calls */
     .compare-tip{font-size:12px;color:#677e90;margin:0 0 11px;padding:0 2px;line-height:1.5}
@@ -239,7 +239,6 @@
         <div class="field"><label for="rent">Max base rent ($)</label><input id="rent" type="number" min="2250" max="3000" step="50" value="3000" inputmode="numeric"></div>
         <div class="field"><label for="beds">Apartment type</label><select id="beds"><option value="all">Studio + 1 bedroom</option><option value="0">Studio only</option><option value="1">1 bedroom only</option></select></div>
         <div class="field"><label for="sort">Sort</label><select id="sort"><option value="new">Newest advertised</option><option value="low">Rent: low to high</option><option value="high">Rent: high to low</option><option value="size">Largest floor area</option><option value="campus">Closest to Columbia · direct distance</option></select></div>
-        <div class="field fee-field"><label for="noFee">Broker fee</label><label class="fee-check"><input type="checkbox" id="noFee"><span>Reported no-fee</span></label></div>
         <button class="action-btn" id="apply" type="button"><svg><use href="#i-search"/></svg> Apply filters</button>
       </div>
     </section>
@@ -350,7 +349,7 @@
     }
     function filtersMatch(x){
       const s=$("#source").value,b=$("#beds").value,a=$("#area").value,minimum=clampRent($("#minRent").value,2250),cap=clampRent($("#rent").value,3000);
-      return southOfGWBridge(x)&&!roomRental(x)&&(s==="both"||x.source_kind===s)&&Number(x.rent)>=minimum&&Number(x.rent)<=cap&&(!a||x.area===a)&&(b==="all"||Number(x.bedrooms)===Number(b))&&(!$("#noFee").checked||feeReported(x));
+      return southOfGWBridge(x)&&!roomRental(x)&&(s==="both"||x.source_kind===s)&&Number(x.rent)>=minimum&&Number(x.rent)<=cap&&(!a||x.area===a)&&(b==="all"||Number(x.bedrooms)===Number(b));
     }
     function listForView(){const sort=$("#sort").value;let data=listings.filter(filtersMatch);data.sort((a,b)=>sort==="low"?Number(a.rent)-Number(b.rent):sort==="high"?Number(b.rent)-Number(a.rent):sort==="size"?Number(b.sqft||0)-Number(a.sqft||0):sort==="campus"?campusDistance(a)-campusDistance(b):freshDate(b).localeCompare(freshDate(a)));return data;}
     function showMarker(id){const found=markerIndex.get(String(id));if(!map||!found)return;setListOnly(false);setTimeout(()=>{map.invalidateSize();map.setView(found.getLatLng(),Math.max(map.getZoom(),15),{animate:true});found.openPopup();if(window.matchMedia("(max-width:760px)").matches)$("#map").scrollIntoView({behavior:"smooth",block:"center"});},25);}
@@ -688,13 +687,13 @@
       const rcChecked=dateOnly(feedMetadata.rcChecked),fmMonth=feedMetadata.fmMonth||"unknown";const mode=$("#source").value;
       summary.textContent=(mode==="historical"?"FirstMover snapshot "+fmMonth+" · not live":mode==="rentcast"?"RentCast checked "+rcChecked+" · provider-reported active":"RentCast checked "+rcChecked+" · FirstMover "+fmMonth);
       $("#source-note").textContent=mode==="historical"?"FirstMover records are historical. Listings north of the approximate GW Bridge approach are excluded; confirm the private-unit lease independently.":mode==="rentcast"?"Only listings south of the approximate GW Bridge approach are included. RentCast status is provider-reported, not guaranteed available; verify the private-unit lease.":"Sources have different freshness. Only south-of-GW-Bridge Manhattan listings appear. Neighborhood labels and private-unit status still require verification.";
-      cards.replaceChildren();if(!shown.length){const empty=text("div","empty","");empty.append(text("strong","",showSaved?"No saved apartments match these filters":"No matching listings"),text("div","",showSaved?"Save an apartment with the heart icon or loosen your filters.":"Try another neighborhood or source. If you've selected 'no-fee', note that many listings do not report fee status."));cards.append(empty);}else{const frag=document.createDocumentFragment();shown.forEach((x,i)=>frag.append(listingCard(x,i)));cards.append(frag);}refreshPins(shown);updateComparisonUI();
+      cards.replaceChildren();if(!shown.length){const empty=text("div","empty","");empty.append(text("strong","",showSaved?"No saved apartments match these filters":"No matching listings"),text("div","",showSaved?"Save an apartment with the heart icon or loosen your filters.":"Try another neighborhood, apartment type, or listing source."));cards.append(empty);}else{const frag=document.createDocumentFragment();shown.forEach((x,i)=>frag.append(listingCard(x,i)));cards.append(frag);}refreshPins(shown);updateComparisonUI();
     }
-    for(const id of ["source","area","beds","sort","noFee"])$("#"+id).addEventListener("change",render);
+    for(const id of ["source","area","beds","sort"])$("#"+id).addEventListener("change",render);
     $("#minRent").addEventListener("change",()=>{normalizeRentFields("min");render();});
     $("#rent").addEventListener("change",()=>{normalizeRentFields("max");render();});
     $("#apply").addEventListener("click",()=>{normalizeRentFields("min");render();$("#results").scrollIntoView({behavior:"smooth",block:"start"});});
-    $("#reset").addEventListener("click",()=>{$("#source").value=rentcast.length?"rentcast":"historical";$("#area").value="";$("#minRent").value="2250";$("#rent").value="3000";$("#beds").value="all";$("#sort").value="new";$("#noFee").checked=false;changeMode="all";render();});
+    $("#reset").addEventListener("click",()=>{$("#source").value=rentcast.length?"rentcast":"historical";$("#area").value="";$("#minRent").value="2250";$("#rent").value="3000";$("#beds").value="all";$("#sort").value="new";changeMode="all";render();});
     for(const [id,kind] of [["change-all","all"],["change-new","newly_seen"],["change-drops","price_drop"]]){
       $("#"+id).addEventListener("click",()=>{changeMode=kind;render();});
     }
