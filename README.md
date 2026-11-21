@@ -19,6 +19,18 @@ https://michaelvriheas.github.io/nyc-apartment-finder/
 
 The site defaults to the RentCast feed when it has matching records. Choose a source in the drop-down to see the monthly historical data separately, or combine both for research.
 
+## Entire-unit preference — no roommate listings
+
+**Goal:** a self-contained **studio or one-bedroom apartment**, not a private bedroom inside a shared apartment.
+
+The RentCast importer and FirstMover importer reject clearly identified room rentals, co-living, and shared-accommodation listings based on available listing descriptions, explicit room-numbered units, classification fields and explicitly reported zero bathrooms. **A studio is kept** when the dataset reports `bedrooms: 0`; a studio is not the same as a rental bedroom within a shared apartment.
+
+**Important limitation:** Neither feed guarantees that a record covers an entire independent dwelling or includes a private kitchen and bathroom. When a provider omits these details, the listing remains marked `unverified_entire_unit`, never `confirmed`. Verify both private facilities and exclusive rights to the unit before applying or paying anything. A bedroom marketed as a studio may still slip through if its source has no room-sharing indicators.
+
+To keep the old snapshot from showing obviously shared rentals, the frontend also checks identifying room/coliving language. Historical first-posting records remain separate from RentCast's provider-checked listings.
+
+For location comparison the cards also show the **straight-line distance** from the listed coordinates to Columbia's Morningside campus, plus a sort option. This is **not** an estimate of walking distance, travel time, subway service, or transit accessibility. Manhattan neighborhood classifications remain approximate.
+
 ## Weekly listing changes
 
 The website tracks two kinds of differences between successive **RentCast** snapshots:
