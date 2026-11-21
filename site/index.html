@@ -88,6 +88,9 @@
     .card-facts .photo-ref{background:#e9f0fa;color:#345a83;padding:2px 6px;border-radius:6px}
     .photo-source-link{position:absolute;left:11px;bottom:10px;z-index:3;display:inline-flex;align-items:center;gap:4px;max-width:calc(100% - 24px);padding:6px 9px;background:#fff;color:#123b5e;border-radius:8px;font-size:11px;font-weight:800;text-decoration:none;box-shadow:0 2px 10px #162b4340}
     .photo-source-link:hover,.photo-source-link:focus-visible{background:#e8f8f5;text-decoration:underline}
+    .listing-licensed-photo{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;z-index:1}
+    .listing-visual.has-photo .visual-note{z-index:3;background:#173349c9;max-width:calc(100% - 20px)}
+    .listing-visual.has-photo .visual-shade{z-index:1;background:linear-gradient(0deg,rgba(19,43,73,.45),transparent 60%)}
     .card-foot{border-top:1px solid #e9eef3;padding-top:11px;margin-top:13px;display:flex;justify-content:space-between;gap:10px;align-items:center}.date-info{font-size:10px;color:#8190a2;max-width:58%;line-height:1.35}.card-links{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
     .map-jump{border:0;background:transparent;color:var(--teal-dark);font-size:11px;font-weight:750;padding:3px}.map-jump:hover{text-decoration:underline}
     .card-link{display:inline-flex;align-items:center;gap:3px;color:var(--teal-dark);font-size:11px;font-weight:800;text-decoration:none;white-space:nowrap}.card-link:hover{text-decoration:underline}
@@ -161,7 +164,7 @@
     const $=s=>document.querySelector(s);
     const cards=$("#cards"), count=$("#count"), summary=$("#snapshot"), workspace=$("#workspace");
     for (const area of AREAS) {const o=document.createElement("option");o.value=o.textContent=area;$("#area").append(o);}
-    let listings=[],historical=[],rentcast=[],showSaved=false,map=null,markers=null,markerIndex=new Map(),feedMetadata={};
+    let listings=[],historical=[],rentcast=[],showSaved=false,map=null,markers=null,markerIndex=new Map(),feedMetadata={},approvedPhotos={};
     let favorites=new Set();
     try{const stored=JSON.parse(localStorage.getItem("nyc-apartment-favorites")||"[]");if(Array.isArray(stored))favorites=new Set(stored.map(String));}catch(e){console.warn("Favorites unavailable",e);}
     const svg=(name,cls="")=>{const el=document.createElementNS("http://www.w3.org/2000/svg","svg");if(cls)el.setAttribute("class",cls);el.setAttribute("aria-hidden","true");const use=document.createElementNS("http://www.w3.org/2000/svg","use");use.setAttribute("href","#i-"+name);el.append(use);return el;};
@@ -194,6 +197,22 @@
       const card=text("article","listing-card","");
       const visual=text("div","listing-visual scene-"+(AREAS.indexOf(x.area)%4+1),"");
       for(const c of ["visual-sun","visual-ground","building building-a","building building-b","building building-c","visual-shade"])visual.append(text("span",c,""));
+      // Only display photos from our manually rights-cleared manifest. Source photo
+      // identifiers alone never authorize downloading/displaying third-party images.
+      const approved=approvedPhotos[String(x.id)];
+      const usablePhoto=approved&&approved.usage_approved===true
+        &&(approved.scope==="unit"||approved.scope==="building")
+        &&typeof approved.license_note==="string"&&approved.license_note.trim().length>0
+        &&typeof approved.credit==="string"&&approved.credit.trim().length>0
+        &&safeUrl(approved.image_url)&&safeUrl(approved.source_url);
+      if(usablePhoto){
+        const img=document.createElement("img");
+        img.src=safeUrl(approved.image_url);
+        img.alt=approved.scope==="unit"?"Authorized photo of "+(x.address||"rental unit"):"Authorized building photo for "+(x.address||"rental address")+", not necessarily the unit";
+        img.loading="lazy";img.decoding="async";img.className="listing-licensed-photo";
+        img.addEventListener("error",()=>{img.remove();visual.classList.remove("has-photo");const note=visual.querySelector(".visual-note");if(note)note.textContent="Illustration · photo failed to load";});
+        visual.append(img);visual.classList.add("has-photo");
+      }
       const badges=text("div","visual-badges","");
       badges.append(text("span","status-badge"+(x.source_kind==="historical"?" historical":""),x.source_kind==="rentcast"?"Provider-listed active":"Historical record"));
       badges.append(text("span","source-badge",x.source_kind==="rentcast"?"RentCast":"FirstMover"));
@@ -210,7 +229,7 @@
         photoLink.title="Photos were referenced when originally advertised; the listing or images may no longer be available";
         visual.append(photoLink);
       }
-      visual.append(text("div","visual-note",photoAdvertised?"Illustration · not unit photo":"Illustration · photo unavailable"));card.append(visual);
+      visual.append(text("div","visual-note",usablePhoto?(approved.scope==="unit"?"Unit photo · ":"Building photo, not unit · ")+approved.credit:photoAdvertised?"Illustration · not unit photo":"Illustration · photo unavailable"));card.append(visual);
       const body=text("div","card-body","");const priceRow=text("div","price-row","");
       const price=text("div","rent-price",money(x.rent));price.append(text("small",""," / month"));priceRow.append(price,text("span","beds-badge",Number(x.bedrooms)===0?"Studio":"1 bedroom"));body.append(priceRow);
       body.append(text("div","card-address",(x.address||"Address not provided")+(x.unit?" · Unit "+x.unit:"")),text("span","area-tag",x.area||"Area not listed"));
@@ -247,7 +266,8 @@
     $("#header-favorites").addEventListener("click",()=>setSavedMode(true));
     $("#split-view").addEventListener("click",()=>setListOnly(false));$("#list-view").addEventListener("click",()=>setListOnly(true));
     async function getJSON(path){try{const r=await fetch(path,{cache:"no-store"});return r.ok?await r.json():null;}catch(e){console.warn("Unable to load data",path,e);return null;}}
-    Promise.all([getJSON("./data/listings.json"),getJSON("./data/rentcast.json")]).then(([h,r])=>{
+    Promise.all([getJSON("./data/listings.json"),getJSON("./data/rentcast.json"),getJSON("./data/approved-photos.json")]).then(([h,r,p])=>{
+      approvedPhotos=p&&p.photos&&typeof p.photos==="object"&&!Array.isArray(p.photos)?p.photos:{};
       historical=Array.isArray(h?.listings)?h.listings.map(x=>({...x,source_kind:"historical"})):[];
       rentcast=Array.isArray(r?.listings)?r.listings.map(x=>({...x,source_kind:"rentcast"})):[];
       listings=[...rentcast,...historical];feedMetadata={rcChecked:r?.checked_at_utc||"",fmMonth:h?.data_month||""};
