@@ -52,14 +52,14 @@ jobs:
           git fetch origin main
           git checkout main
           git reset --hard origin/main
-          python scripts/fetch_rentcast.py reserve
+          python -m scripts.fetch_rentcast reserve
           # Push the reservation BEFORE any billable request. A failed push blocks the fetch.
           if [ -n "$(git status --porcelain -- .rentcast-budget.json)" ]; then
             git add .rentcast-budget.json
             git commit -m "Reserve RentCast request budget [skip ci]"
             git push origin main
           fi
-          python scripts/fetch_rentcast.py fetch
+          python -m scripts.fetch_rentcast fetch
           if [ -f site/data/rentcast.json ]; then
             git add site/data/rentcast.json
             if ! git diff --cached --quiet; then
@@ -71,7 +71,7 @@ jobs:
       - name: Import latest public FirstMover historical snapshot
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: python scripts/update_listings.py
+        run: python -m scripts.update_listings
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload site
