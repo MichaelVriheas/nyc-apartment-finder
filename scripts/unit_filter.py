@@ -9,7 +9,7 @@ import re
 ROOM_SCOPE = re.compile(
     r"\b(?:private\s+room|single\s+room|room\s+for\s+rent|room\s+available|"
     r"bedroom\s+for\s+rent|rent(?:ing)?\s+(?:a\s+)?(?:single\s+|private\s+)?room|"
-    r"(?:room|bedroom)\s+in\s+(?:a\s+|an\s+)?(?:(?:\\d+|two|three|four)[-\\s]+bed(?:room)?[-\\s]+)?(?:shared\s+)?(?:apartment|house|home|flat)|"
+    r"(?:room|bedroom)\s+in\s+(?:a\s+|an\s+)?(?:(?:\d+|two|three|four)[-\s]+bed(?:room)?[-\s]+)?(?:shared\s+)?(?:apartment|house|home|flat)|"
     r"shared\s+(?:apartment|flat|house|housing|bedroom|bathroom|kitchen|living|space)|"
     r"roommates?\s+(?:wanted|needed|welcome)|looking\s+for\s+(?:a\s+)?roommate|"
     r"co[- ]?living|room\s?share|house\s?share|bed\s?space|per\s+bedroom|"
