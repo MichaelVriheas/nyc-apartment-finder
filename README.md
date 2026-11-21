@@ -6,7 +6,7 @@ A personal, self-updating apartment search dashboard for an **August 2027** move
 
 - **Monthly base rent range:** $2,250–$3,000, inclusive (fees/utilities may be extra)
 - **Apartment types:** Studio and one-bedroom
-- **Manhattan:** Morningside Heights, Manhattan Valley, Manhattanville, Hamilton Heights, South Harlem, Northern Upper West Side, Central Harlem, Washington Heights
+- **Manhattan:** Morningside Heights, Manhattan Valley, Manhattanville, Hamilton Heights, South Harlem, Northern Upper West Side, Central Harlem, and Washington Heights **only south of the George Washington Bridge**
 
 ## Live website
 
@@ -14,7 +14,7 @@ https://michaelvriheas.github.io/nyc-apartment-finder/
 
 ## Data sources — clearly distinguished on the website
 
-1. **RentCast API:** Long-term rental listings with provider-reported `Active` status at the most recent API check. Searched with two smaller circular queries covering the target Manhattan NTAs; duplicate listing IDs are merged. Areas use NYC DCP's [2020 Neighborhood Tabulation Areas](https://data.cityofnewyork.us/d/9nt8-h7nd), statistical polygons that **do not define neighborhoods definitively**. The Manhattan Valley/Northern UWS distinction is a documented custom approximation. Each query can still return at most 500 listings; the search is not exhaustive. RentCast does not guarantee currently available apartments or an original listing URL, so the site links to an address web search.
+1. **RentCast API:** Long-term rental listings with provider-reported `Active` status at the most recent API check. Searched with two smaller circular queries covering the target Manhattan NTAs **south of the GW Bridge approach**; duplicate listing IDs are merged. Areas use NYC DCP's [2020 Neighborhood Tabulation Areas](https://data.cityofnewyork.us/d/9nt8-h7nd), statistical polygons that **do not define neighborhoods definitively**. The Manhattan Valley/Northern UWS distinction is a documented custom approximation. Each query can still return at most 500 listings; the search is not exhaustive. RentCast does not guarantee currently available apartments or an original listing URL, so the site links to an address web search.
 2. **[FirstMover Open Data](https://www.firstmovernyc.com/open-data):** Free historical monthly CSV snapshots, prices as initially advertised. These records **do not** confirm availability or latest rent.
 
 The site defaults to the RentCast feed when it has matching records. Choose a source in the drop-down to see the monthly historical data separately, or combine both for research.
@@ -50,15 +50,21 @@ Open [Market Insights](https://michaelvriheas.github.io/nyc-apartment-finder/mar
 - **Historical trend:** a chart of only **actual saved RentCast observations**, selectable by neighborhood and studio/one-bedroom type. A single baseline is shown as one point, not an invented monthly line. Observations collected using a different search method are **never connected** as though directly comparable
 - **Data caveats:** the data covers only rentals already filtered to $2,250–$3,000, not all rental inventory; RentCast availability is provider-reported, API searches can be capped at 500 results each, and smaller neighborhood labels are approximate. FirstMover's historical initial advertisements are not included in these median series
 
-`site/data/market-history.json` begins with the **actual November 21, 2026 saved snapshot** (74 qualifying RentCast records following geographic reclassification). This was a one-region, response-limited sample, so it remains distinct from the next two-region methodology. **Each successful future RentCast refresh adds a compact, dated aggregate record** via `scripts/rent_history.py`, and the workflow commits it together with `site/data/rentcast.json`. There are no fabricated months, no extra RentCast API requests for analytics, and no paid chart libraries.
+`site/data/market-history.json` begins with the **actual November 21, 2026 saved snapshot** (60 qualifying RentCast records after geographic reclassification and the GW Bridge cutoff). This was a one-region, response-limited sample, so it remains distinct from the next two-region methodology. **Each successful future RentCast refresh adds a compact, dated aggregate record** via `scripts/rent_history.py`, and the workflow commits it together with `site/data/rentcast.json`. The November 21 observation was further re-filtered to the new GW Bridge cutoff (60 matching records rather than the previous 74), without a fresh provider request. There are no fabricated months, no extra RentCast API requests for analytics, and no paid chart libraries.
 
 ## Geographic search coverage and change-tracking reset
 
-Previously a single 3.7-mile circular query reached the RentCast 500-result cap, and simple latitude/longitude rectangles incorrectly categorized Bronx addresses as South Harlem. The saved November 21, 2026 snapshot was **reclassified without making API requests**, reducing the stored RentCast records from 114 to 74 target-area matches. This removes wrong-borough and non-target neighborhood records; it **does not establish that 74 is a complete list**.
+Previously a single 3.7-mile circular query reached the RentCast 500-result cap, and simple latitude/longitude rectangles incorrectly categorized Bronx addresses as South Harlem. The saved November 21, 2026 snapshot was **reclassified without making API requests**, reducing the stored RentCast records from 114 to 74 target-area matches, then to **60** after excluding **14** addresses north of the George Washington Bridge. These removals are geographic—not proof of rentals or unavailable units. The 60 records are **not a complete inventory**.
 
-The new workflow uses a southern circle centered at (40.8000, -73.9635) with a 1.85-mile radius and a northern circle centered at (40.8435, -73.9435) with a 2.15-mile radius. RentCast measures `radius` in miles. Both cover the compact DCP NTA polygons listed in `site/data/manhattan-nta-areas.geojson`; records are retained only if they land within those polygons and meet all other filters. A response with 500 listings gets an explicit cap flag in the published JSON, since even two smaller searches can truncate the data.
+The new workflow uses a southern circle centered at (40.8000, -73.9635) with a 1.85-mile radius and a northern circle centered at (40.8310, -73.9450) with a 1.65-mile radius. RentCast measures `radius` in miles. These cover the relevant portions of the compact DCP NTA polygons in `site/data/manhattan-nta-areas.geojson` SOUTH of the cutoff; records are retained only if they land within those polygons and meet all other filters. A response with 500 listings gets an explicit cap flag in the published JSON, since even two smaller searches can truncate the data.
 
 **Comparability:** Switching from a single large circle to two smaller circles changes which listings are sampled. The first successful run with the new methodology will establish a **new baseline** instead of treating removed or reclassified apartments as rented, missing or newly found. Subsequent successful weekly comparisons will show changes normally.
+
+## George Washington Bridge northern boundary
+
+The search stops at an **approximate sloped boundary along the GW Bridge's Manhattan approach**, near the West 178th–179th Street alignment. We use two mapped reference points: (40.848624, -73.937370) around Broadway at West 178th/179th and (40.849438, -73.939025) around Fort Washington Avenue at West 179th. These define an approximate street-grid cutoff rather than an authoritative surveyed bridge footprint. Apartments with coordinates **north** of that line are excluded; southern Washington Heights listings are still included.
+
+The same rule lives in `scripts/areas.py` for both new RentCast and FirstMover imports, and independently in `site/index.html` as a safeguard against older cached data. The site also drops now-out-of-area comparison and favorite IDs in the same browser. `site/data/market-history.json` has been re-aggregated from the surviving **real November 21 provider snapshot**, with its original observation date retained; the count change is not a new check or a price trend. The next successful two-circle RentCast update starts a new methodology baseline so it does not count all changed-scope listings as newly discovered or rented. **No new RentCast requests** were needed for this adjustment.
 
 ## Weekly listing changes
 
