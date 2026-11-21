@@ -36,5 +36,30 @@ for(const key of ['id="compare-dock"','id="compare-open"','id="compare-dialog"',
 }
 assert.ok(html.includes('localStorage.setItem(compareStorageKey'),"Comparison picks must persist locally");
 assert.ok(html.includes('typeof dialog.showModal==="function"'),"Comparison modal must support keyboard-aware native dialog");
+// Market Insights lives on its own site route; validate JS without network or browser.
+const insights = fs.readFileSync("site/market-insights.html", "utf8");
+const insightsScripts = [...insights.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
+  .map(m=>m[1].trim()).filter(Boolean);
+assert.ok(insightsScripts.length===1,"Market Insights must have one static browser script");
+for(const script of insightsScripts)new vm.Script(script,{filename:"site/market-insights.html"});
+for(const key of ['id="area-filter"','id="bed-filter"','id="trend-chart"',
+                  'id="neighborhood-bars"','market-history.json',
+                  "sameMethod=snapshots.filter", 'source response capped',
+                  'median withheld','studio','one_bed',
+                  'FirstMover','historical initial advertisements']){
+  assert.ok(insights.includes(key),"Market Insights missing: "+key);
+}
+assert.ok(html.includes('href="./market-insights.html"'),"Marketplace needs a Market Insights navigation link");
+assert.ok(insights.includes('href="./index.html"'),"Market Insights needs a marketplace return link");
+const history=JSON.parse(fs.readFileSync("site/data/market-history.json","utf8"));
+assert.equal(history.schema_version,1,"Unexpected market-history version");
+assert.equal(history.rent_min,2250);assert.equal(history.rent_max,3000);
+assert.ok(history.snapshots.length>=1,"At least one genuine history snapshot required");
+for(const record of history.snapshots){
+  const all=record.overall?.all;
+  assert.ok(all && Number.isInteger(all.count),"Each observation must have a sampled count");
+  assert.ok(all.median==null || (all.median>=2250&&all.median<=3000),"Observed median must fit the advertised price band");
+  assert.equal(Object.keys(record.neighborhoods||{}).length,8,"Each observation needs the 8 areas");
+}
 assert.ok(!html.includes("Fort Lee"), "Removed search area must not appear");
 console.log("Passed JS syntax and room-rental UI guard checks.");
