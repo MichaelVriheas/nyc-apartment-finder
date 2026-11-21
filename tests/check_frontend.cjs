@@ -94,5 +94,19 @@ for(const key of ['function buildMapPreview(x)','function focusListingFromMap(id
   'Hover over a pin for apartment details']){
   assert.ok(html.includes(key),"Interactive map feature missing: "+key);
 }
+// Broker fee is informational, not a filtering criterion. Keep any fee
+// labels on cards and comparisons, but no broker-fee selection control.
+for(const removed of ['id="noFee"','for="noFee"','$("#noFee")','fee-field','fee-check']){
+  assert.ok(!html.includes(removed),"Broker fee search control must be absent: "+removed);
+}
+assert.ok(html.includes('const feeReported=x=>'),"Source-reported fee information should remain available");
+assert.ok(html.includes('✓ No fee reported'),"Retain informational no-fee listing badges");
+assert.ok(html.includes('{label:"Broker fee"'),"Retain fee information in the comparison table");
+assert.ok(html.includes('for(const id of ["source","area","beds","sort"])'),
+  "The other search controls must still trigger rendering");
+assert.ok(html.includes('$("#sort").value="new"'),
+  "Reset should still restore the default sort");
+assert.ok(html.includes('function buildMapPreview(x)')&&html.includes('function refreshPins(list)'),
+  "Interactive map must remain intact");
 assert.ok(!html.includes("Fort Lee"), "Removed search area must not appear");
 console.log("Passed JS syntax and room-rental UI guard checks.");
