@@ -13,6 +13,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from scripts.unit_filter import room_rental_reason
 from scripts.areas import classify_area
+from scripts.rent_history import update_history
 
 LEDGER = Path(".rentcast-budget.json")
 OUTPUT = Path("site/data/rentcast.json")
@@ -239,6 +240,9 @@ def fetch():
     }
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(output, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    # Store one compact observation per successful RentCast check, never FirstMover.
+    # This file gets committed with the snapshot in the same GitHub push.
+    update_history(output)
     print("RentCast test results (no secret or addresses shown): " + json.dumps(counts))
     print(f"Published {len(all_rows)} sampled active records. Changes vs preceding snapshot: newly seen={new_count}, lower price={drop_count}, higher price={increase_count}, not found={not_found_count}. Not a verified rental inventory.")
 
