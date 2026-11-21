@@ -201,7 +201,7 @@
       <div class="overview" aria-label="Search preferences">
         <div class="chip"><svg><use href="#i-wallet"/></svg> Monthly base rent <b>$2,250–$3,000</b></div>
         <div class="chip"><svg><use href="#i-bed"/></svg> Studio + <b>1 bedroom</b></div>
-        <div class="chip"><svg><use href="#i-pin"/></svg> <b>8</b> search areas</div>
+        <div class="chip"><svg><use href="#i-pin"/></svg> <b>8</b> search areas · south of GW Bridge</div>
         <div class="chip"><svg><use href="#i-layers"/></svg> <b>RentCast + FirstMover</b></div>
       </div>
     </div>
@@ -220,9 +220,9 @@
         <button class="action-btn" id="apply" type="button"><svg><use href="#i-search"/></svg> Apply filters</button>
       </div>
     </section>
-    <div class="under-filter"><div class="disclaimer"><svg><use href="#i-alert"/></svg><span id="source-note">Showing studio and one-bedroom listings, with identifiable room shares removed. Verify you are renting an entire unit with a private kitchen and bathroom, and confirm rent, fees and availability.</span></div><button class="reset-btn" id="reset" type="button">Reset filters</button></div>
+    <div class="under-filter"><div class="disclaimer"><svg><use href="#i-alert"/></svg><span id="source-note">Showing studios and one-bedrooms SOUTH of the GW Bridge, with identifiable room shares removed. Verify private kitchen, bath, lease and availability.</span></div><button class="reset-btn" id="reset" type="button">Reset filters</button></div>
     <div class="workspace" id="workspace">
-      <aside class="map-panel" aria-label="Apartment locations"><div class="map-title"><span class="panel-heading">Explore the map</span><span class="map-caption">Columbia · Upper Manhattan</span></div><div id="map" role="region" aria-label="Interactive rental listing map"></div><div class="map-footer"><span><i class="legend-dot school"></i> Columbia campus</span><span><i class="legend-dot"></i> RentCast</span><span><i class="legend-dot historic"></i> Historical</span></div></aside>
+      <aside class="map-panel" aria-label="Apartment locations"><div class="map-title"><span class="panel-heading">Explore the map</span><span class="map-caption">Columbia · South of GW Bridge</span></div><div id="map" role="region" aria-label="Interactive rental listing map"></div><div class="map-footer"><span><i class="legend-dot school"></i> Columbia campus</span><span><i class="legend-dot"></i> RentCast</span><span><i class="legend-dot historic"></i> Historical</span></div></aside>
       <section class="results-panel" id="results" aria-label="Search results">
         <div class="results-toolbar"><div class="toolbar-main"><div class="tab-group" role="group" aria-label="Listing selection"><button type="button" class="tab active" id="all" aria-pressed="true">All listings <span id="all-total">(0)</span></button><button type="button" class="tab" id="saved" aria-pressed="false">♡ Saved <span id="saved-total">(0)</span></button></div><div class="view-toggle" role="group" aria-label="Display mode"><button type="button" class="view-button active" id="split-view" aria-label="Show map and listing cards" aria-pressed="true"><svg><use href="#i-map"/></svg> Map + cards</button><button type="button" class="view-button" id="list-view" aria-label="Show listing cards only" aria-pressed="false"><svg><use href="#i-list"/></svg> Cards only</button></div></div><div class="results-overview"><div><div class="results-title" id="count" role="status">Loading apartments…</div><p class="results-subtitle" id="snapshot">Fetching the latest stored datasets.</p></div><div class="source-counts" id="source-counts"></div></div></div>
         <div class="change-panel" id="changes-panel" aria-label="Changes in the last RentCast snapshot">
@@ -238,7 +238,7 @@
         <div class="card-grid" id="cards" aria-live="polite"></div>
       </section>
     </div>
-    <footer class="footer">Research tool only. RentCast listings are provider-reported active at the last check, not guaranteed available now; FirstMover listings are historical. Asking base rents may exclude additional charges, Neighborhoods use NYC's 2020 Neighborhood Tabulation Areas (not definitive neighborhood borders), with some approximate sub-neighborhood splits; campus distances are straight-line rather than walking distances. Walking and transit links open current Google Maps routes. Obvious room shares are filtered, but private-unit status is not independently verified. This site is not affiliated with Columbia University, RentCast, FirstMover, StreetEasy or Zillow. <a href="https://www.firstmovernyc.com/open-data" target="_blank" rel="noopener noreferrer">FirstMover Open Data (CC0)</a>. Favorites stay in this browser; some external apartment searches may not locate an exact listing.</footer>
+    <footer class="footer">Research tool only. RentCast listings are provider-reported active at the last check, not guaranteed available now; FirstMover listings are historical. Asking base rents may exclude additional charges, Neighborhoods use NYC's 2020 Neighborhood Tabulation Areas and an approximate GW Bridge northern cutoff; campus distances are straight-line rather than walking distances. Walking and transit links open current Google Maps routes. Obvious room shares are filtered, but private-unit status is not independently verified. This site is not affiliated with Columbia University, RentCast, FirstMover, StreetEasy or Zillow. <a href="https://www.firstmovernyc.com/open-data" target="_blank" rel="noopener noreferrer">FirstMover Open Data (CC0)</a>. Favorites stay in this browser; some external apartment searches may not locate an exact listing.</footer>
   </main>
   <aside class="compare-dock" id="compare-dock" aria-label="Selected apartments for comparison" hidden>
     <div class="compare-dock-main"><strong>Compare apartments</strong><span id="compare-count" role="status" aria-live="polite">0 of 3 selected</span></div>
@@ -262,6 +262,13 @@
   <script>
     "use strict";
     const AREAS=["Morningside Heights","Manhattan Valley","Manhattanville","Hamilton Heights","South Harlem","Northern Upper West Side","Central Harlem","Washington Heights"];
+    // Approximate GW Bridge approach boundary from W178/179 at Broadway to W179 at Fort Washington Ave.
+    const southOfGWBridge=x=>{
+      const lat=Number(x.latitude),lon=Number(x.longitude);
+      if(x.latitude==null||x.longitude==null||!Number.isFinite(lat)||!Number.isFinite(lon))return false;
+      const cutoff=40.848624+(lon-(-73.937370))*((40.849438-40.848624)/(-73.939025-(-73.937370)));
+      return lat<=cutoff;
+    };
     const $=s=>document.querySelector(s);
     const cards=$("#cards"), count=$("#count"), summary=$("#snapshot"), workspace=$("#workspace");
     for (const area of AREAS) {const o=document.createElement("option");o.value=o.textContent=area;$("#area").append(o);}
@@ -319,7 +326,7 @@
     }
     function filtersMatch(x){
       const s=$("#source").value,b=$("#beds").value,a=$("#area").value,minimum=clampRent($("#minRent").value,2250),cap=clampRent($("#rent").value,3000);
-      return !roomRental(x)&&(s==="both"||x.source_kind===s)&&Number(x.rent)>=minimum&&Number(x.rent)<=cap&&(!a||x.area===a)&&(b==="all"||Number(x.bedrooms)===Number(b))&&(!$("#noFee").checked||feeReported(x));
+      return southOfGWBridge(x)&&!roomRental(x)&&(s==="both"||x.source_kind===s)&&Number(x.rent)>=minimum&&Number(x.rent)<=cap&&(!a||x.area===a)&&(b==="all"||Number(x.bedrooms)===Number(b))&&(!$("#noFee").checked||feeReported(x));
     }
     function listForView(){const sort=$("#sort").value;let data=listings.filter(filtersMatch);data.sort((a,b)=>sort==="low"?Number(a.rent)-Number(b.rent):sort==="high"?Number(b.rent)-Number(a.rent):sort==="size"?Number(b.sqft||0)-Number(a.sqft||0):sort==="campus"?campusDistance(a)-campusDistance(b):freshDate(b).localeCompare(freshDate(a)));return data;}
     function showMarker(id){const found=markerIndex.get(String(id));if(!map||!found)return;setListOnly(false);setTimeout(()=>{map.invalidateSize();map.setView(found.getLatLng(),Math.max(map.getZoom(),15),{animate:true});found.openPopup();if(window.matchMedia("(max-width:760px)").matches)$("#map").scrollIntoView({behavior:"smooth",block:"center"});},25);}
@@ -557,7 +564,7 @@
       const labels=$("#source-counts");labels.replaceChildren();if(rcCount)labels.append(text("span","count-pill",rcCount+" RentCast"));if(histCount)labels.append(text("span","count-pill historical",histCount+" historical"));if(rcCount&&feedMetadata.rcResponseLimit)labels.append(text("span","count-pill coverage-alert","⚠ RentCast sample capped"));
       const rcChecked=dateOnly(feedMetadata.rcChecked),fmMonth=feedMetadata.fmMonth||"unknown";const mode=$("#source").value;
       summary.textContent=(mode==="historical"?"FirstMover snapshot "+fmMonth+" · not live":mode==="rentcast"?"RentCast checked "+rcChecked+" · provider-reported active":"RentCast checked "+rcChecked+" · FirstMover "+fmMonth);
-      $("#source-note").textContent=mode==="historical"?"FirstMover listings are historical. The geographic filter uses 2020 NYC NTA areas, with approximate smaller-neighborhood labels. Confirm any private-unit lease independently.":mode==="rentcast"?"RentCast is provider-reported, not guaranteed available. NYC 2020 NTA boundaries improve Manhattan inclusion, but smaller neighborhood labels are approximate. Verify the private-unit lease.":"Sources have different freshness. NYC 2020 NTA geography helps exclude other boroughs, but smaller neighborhood labels and private-unit status still require verification.";
+      $("#source-note").textContent=mode==="historical"?"FirstMover records are historical. Listings north of the approximate GW Bridge approach are excluded; confirm the private-unit lease independently.":mode==="rentcast"?"Only listings south of the approximate GW Bridge approach are included. RentCast status is provider-reported, not guaranteed available; verify the private-unit lease.":"Sources have different freshness. Only south-of-GW-Bridge Manhattan listings appear. Neighborhood labels and private-unit status still require verification.";
       cards.replaceChildren();if(!shown.length){const empty=text("div","empty","");empty.append(text("strong","",showSaved?"No saved apartments match these filters":"No matching listings"),text("div","",showSaved?"Save an apartment with the heart icon or loosen your filters.":"Try another neighborhood or source. If you've selected 'no-fee', note that many listings do not report fee status."));cards.append(empty);}else{const frag=document.createDocumentFragment();shown.forEach((x,i)=>frag.append(listingCard(x,i)));cards.append(frag);}refreshPins(shown);updateComparisonUI();
     }
     for(const id of ["source","area","beds","sort","noFee"])$("#"+id).addEventListener("change",render);
@@ -585,12 +592,14 @@
     async function getJSON(path){try{const r=await fetch(path,{cache:"no-store"});return r.ok?await r.json():null;}catch(e){console.warn("Unable to load data",path,e);return null;}}
     Promise.all([getJSON("./data/listings.json"),getJSON("./data/rentcast.json"),getJSON("./data/approved-photos.json")]).then(([h,r,p])=>{
       approvedPhotos=p&&p.photos&&typeof p.photos==="object"&&!Array.isArray(p.photos)?p.photos:{};
-      historical=Array.isArray(h?.listings)?h.listings.map(x=>({...x,source_kind:"historical"})):[];
-      rentcast=Array.isArray(r?.listings)?r.listings.map(x=>({...x,source_kind:"rentcast"})):[];
+      historical=Array.isArray(h?.listings)?h.listings.filter(southOfGWBridge).map(x=>({...x,source_kind:"historical"})):[];
+      rentcast=Array.isArray(r?.listings)?r.listings.filter(southOfGWBridge).map(x=>({...x,source_kind:"rentcast"})):[];
       listings=[...rentcast,...historical];
-      const allowedIds=new Set(listings.filter(x=>!roomRental(x)&&Number(x.rent)>=2250&&Number(x.rent)<=3000).map(x=>String(x.id)));
+      const allowedIds=new Set(listings.filter(x=>southOfGWBridge(x)&&!roomRental(x)&&Number(x.rent)>=2250&&Number(x.rent)<=3000).map(x=>String(x.id)));
       const validCompare=compareIds.filter(id=>allowedIds.has(id));
       if(validCompare.length!==compareIds.length){compareIds=validCompare;persistCompare();}
+      const allowedFavorites=[...favorites].filter(id=>allowedIds.has(id));
+      if(allowedFavorites.length!==favorites.size){favorites=new Set(allowedFavorites);try{localStorage.setItem("nyc-apartment-favorites",JSON.stringify([...favorites]));}catch(e){console.warn("Unable to prune out-of-area favorites",e);}}
       feedMetadata={rcChecked:r?.checked_at_utc||"",fmMonth:h?.data_month||"",comparison:r?.comparison||null,rcResponseLimit:Boolean(r?.search_response_limit_hit||Object.values(r?.query_counts||{}).some(v=>Number(v?.returned)>=500))};
       $("#source").value=rentcast.length?"rentcast":"historical";render();
     }).catch(e=>{console.error("Could not display listings",e);count.textContent="Listings unavailable";summary.textContent="Please check the refresh workflow.";});
