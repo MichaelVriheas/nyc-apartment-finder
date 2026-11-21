@@ -11,6 +11,7 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from scripts.unit_filter import room_rental_reason
 
 LEDGER = Path(".rentcast-budget.json")
 OUTPUT = Path("site/data/rentcast.json")
@@ -135,7 +136,7 @@ def fetch():
         except urllib.error.HTTPError as e:
             # Never print headers, secret, request object, or API response body.
             raise RuntimeError(f"RentCast request failed with HTTP {e.code} for {label}") from None
-        counts[label] = {"returned": len(rows), "matched": 0}
+        counts[label] = {"returned": len(rows), "matched": 0, "excluded_room_rentals": 0}
         for row in rows:
             area = classify(row, label)
             rent = maybe_num(row.get("price"))
@@ -143,6 +144,9 @@ def fetch():
             if not area or rent is None or not 0 < rent <= 3000 or bedrooms not in (0, 1):
                 continue
             if row.get("status") != "Active":
+                continue
+            if room_rental_reason(row):
+                counts[label]["excluded_room_rentals"] += 1
                 continue
             identifier = str(row.get("id") or "")
             if not identifier:
@@ -156,6 +160,8 @@ def fetch():
                 "id": "rentcast-" + identifier, "source_kind": "rentcast",
                 "area": area, "area_estimated": True,
                 "address": addr, "unit": "",
+                "property_type": str(row.get("propertyType") or ""),
+                "unit_scope": "unverified_entire_unit",
                 "rent": int(rent), "bedrooms": int(bedrooms),
                 "bathrooms": maybe_num(row.get("bathrooms")), "sqft": maybe_num(row.get("squareFootage")),
                 "latitude": maybe_num(row.get("latitude")), "longitude": maybe_num(row.get("longitude")),
@@ -182,7 +188,7 @@ def fetch():
     previous = {
         str(item["id"]): item
         for item in (prev_payload.get("listings", []) if prev_payload else [])
-        if isinstance(item, dict) and item.get("id") and item.get("area") != "Fort Lee"
+        if isinstance(item, dict) and item.get("id") and item.get("area") != "Fort Lee" and not room_rental_reason(item)
     }
     checked_at = now().isoformat()
     new_count = 0
@@ -233,6 +239,7 @@ def fetch():
         "warning": "Provider-reported active status is not a guarantee of availability. Verify independently. Neighborhood classifications are approximate.",
         "query_counts": counts,
         "comparison": comparison,
+        "unit_policy": "Excludes only clearly identified room rentals, shared accommodation, co-living and zero-bath listings. Entire-unit status is not independently verified.",
         "requests_reserved_in_31_days": sum(int(x["calls"]) for x in entries),
         "listings": sorted(all_rows.values(), key=lambda r: r["last_seen"], reverse=True)
     }
