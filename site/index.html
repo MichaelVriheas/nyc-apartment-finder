@@ -98,6 +98,8 @@
     .card-address{font-weight:730;color:#2c3e56;line-height:1.32;margin:10px 0 7px;min-height:36px;overflow-wrap:anywhere}.area-tag{display:inline-block;font-weight:700;font-size:11px;color:#286178;background:#e8f2f7;padding:3px 9px;border-radius:100px;max-width:100%;overflow-wrap:anywhere}
     .card-facts{display:flex;flex-wrap:wrap;gap:9px;margin-top:10px;color:#52657a;font-size:11px;font-weight:650}.card-facts span{white-space:nowrap}.card-facts .no-fee{background:#def5ee;color:#087368;padding:2px 6px;border-radius:6px}
     .card-facts .photo-ref{background:#e9f0fa;color:#345a83;padding:2px 6px;border-radius:6px}
+    .card-facts .campus-distance{background:#f0f5fd;color:#345a83;padding:2px 6px;border-radius:6px}
+    .unit-disclaimer{display:block;font-size:11px;line-height:1.45;color:#64758a;margin-top:7px}
     .photo-source-link{position:absolute;left:11px;bottom:10px;z-index:3;display:inline-flex;align-items:center;gap:4px;max-width:calc(100% - 24px);padding:6px 9px;background:#fff;color:#123b5e;border-radius:8px;font-size:11px;font-weight:800;text-decoration:none;box-shadow:0 2px 10px #162b4340}
     .photo-source-link:hover,.photo-source-link:focus-visible{background:#e8f8f5;text-decoration:underline}
     .listing-licensed-photo{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;z-index:1}
@@ -154,12 +156,12 @@
         <div class="field"><label for="area">Neighborhood</label><select id="area"><option value="">All 8 areas</option></select></div>
         <div class="field"><label for="rent">Max base rent ($)</label><input id="rent" type="number" min="500" max="3000" step="100" value="3000" inputmode="numeric"></div>
         <div class="field"><label for="beds">Apartment type</label><select id="beds"><option value="all">Studio + 1 bedroom</option><option value="0">Studio only</option><option value="1">1 bedroom only</option></select></div>
-        <div class="field"><label for="sort">Sort</label><select id="sort"><option value="new">Newest advertised</option><option value="low">Rent: low to high</option><option value="high">Rent: high to low</option><option value="size">Largest floor area</option></select></div>
+        <div class="field"><label for="sort">Sort</label><select id="sort"><option value="new">Newest advertised</option><option value="low">Rent: low to high</option><option value="high">Rent: high to low</option><option value="size">Largest floor area</option><option value="campus">Closest to Columbia · direct distance</option></select></div>
         <div class="field fee-field"><label for="noFee">Broker fee</label><label class="fee-check"><input type="checkbox" id="noFee"><span>Reported no-fee</span></label></div>
         <button class="action-btn" id="apply" type="button"><svg><use href="#i-search"/></svg> Apply filters</button>
       </div>
     </section>
-    <div class="under-filter"><div class="disclaimer"><svg><use href="#i-alert"/></svg><span id="source-note">RentCast activity is provider-reported at the last data check, not independently confirmed. Check rent, fees and availability with the landlord or agent.</span></div><button class="reset-btn" id="reset" type="button">Reset filters</button></div>
+    <div class="under-filter"><div class="disclaimer"><svg><use href="#i-alert"/></svg><span id="source-note">Showing studio and one-bedroom listings, with identifiable room shares removed. Verify you are renting an entire unit with a private kitchen and bathroom, and confirm rent, fees and availability.</span></div><button class="reset-btn" id="reset" type="button">Reset filters</button></div>
     <div class="workspace" id="workspace">
       <aside class="map-panel" aria-label="Apartment locations"><div class="map-title"><span class="panel-heading">Explore the map</span><span class="map-caption">Columbia · Upper Manhattan</span></div><div id="map" role="region" aria-label="Interactive rental listing map"></div><div class="map-footer"><span><i class="legend-dot school"></i> Columbia campus</span><span><i class="legend-dot"></i> RentCast</span><span><i class="legend-dot historic"></i> Historical</span></div></aside>
       <section class="results-panel" id="results" aria-label="Search results">
@@ -176,7 +178,7 @@
         <div class="card-grid" id="cards" aria-live="polite"></div>
       </section>
     </div>
-    <footer class="footer">Research tool only. RentCast listings are provider-reported active at the last check, not guaranteed available now; FirstMover listings are historical. Asking base rents may exclude additional charges, and Manhattan neighborhood labels are approximations. This site is not affiliated with Columbia University, RentCast, FirstMover, StreetEasy or Zillow. <a href="https://www.firstmovernyc.com/open-data" target="_blank" rel="noopener noreferrer">FirstMover Open Data (CC0)</a>. Favorites stay in this browser; some external apartment searches may not locate an exact listing.</footer>
+    <footer class="footer">Research tool only. RentCast listings are provider-reported active at the last check, not guaranteed available now; FirstMover listings are historical. Asking base rents may exclude additional charges, Manhattan neighborhood labels are approximations, and campus distances are straight-line estimates rather than walking or transit times. Obvious room shares are filtered, but private-unit status is not independently verified. This site is not affiliated with Columbia University, RentCast, FirstMover, StreetEasy or Zillow. <a href="https://www.firstmovernyc.com/open-data" target="_blank" rel="noopener noreferrer">FirstMover Open Data (CC0)</a>. Favorites stay in this browser; some external apartment searches may not locate an exact listing.</footer>
   </main>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
@@ -195,6 +197,22 @@
     const dateOnly=v=>{const s=String(v||"");return /^\d{4}-\d{2}-\d{2}/.test(s)?s.slice(0,10):"not provided";};
     const freshDate=x=>String(x.listed_at||x.last_seen||"");
     const feeReported=x=>[true,1,"1","yes","true"].includes(typeof x.no_fee_at_posting==="string"?x.no_fee_at_posting.toLowerCase():x.no_fee_at_posting);
+    const campusDistance=x=>{
+      const lat=Number(x.latitude),lon=Number(x.longitude);
+      if(x.latitude==null||x.longitude==null||!Number.isFinite(lat)||!Number.isFinite(lon))return Infinity;
+      const r=Math.PI/180,dlat=(lat-40.8075)*r,dlon=(lon+73.9626)*r;
+      const a=Math.sin(dlat/2)**2+Math.cos(lat*r)*Math.cos(40.8075*r)*Math.sin(dlon/2)**2;
+      return 3958.8*2*Math.asin(Math.sqrt(Math.min(1,a)));
+    };
+    // Defense in depth for old stored snapshots. Only obvious room shares are
+    // excluded; the source feeds cannot independently verify entire-unit rights.
+    const roomRental=x=>{
+      if(x.bathrooms===0||x.bathrooms==="0"||x.unit_scope==="room_only")return true;
+      const unit=String(x.unit||"").trim();
+      if(/^(?:room|rm|bedroom|bedspace)\\s*[-#:]?\\s*[a-z0-9]+\\b/i.test(unit))return true;
+      const desc=[x.address,x.title,x.headline,x.description].map(v=>String(v||"")).join(" ");
+      return /\\b(?:private room|single room|room for rent|room available|bedroom for rent|shared (?:apartment|flat|house|housing|bedroom|bathroom|kitchen|living|space)|roommates? (?:wanted|needed|welcome)|co[- ]?living|room\\s?share|house\\s?share|bed\\s?space|by the room|per bedroom|room in (?:a |an )?(?:shared )?(?:apartment|home|house|flat))\\b/i.test(desc);
+    };
     function addPinMap(){
       if(typeof L==="undefined"){const el=$("#map");el.classList.add("map-empty");el.textContent="Map temporarily unavailable. You can still browse the cards.";return;}
       try{
@@ -210,9 +228,9 @@
     function setListOnly(only){workspace.classList.toggle("list-only",only);$("#list-view").classList.toggle("active",only);$("#split-view").classList.toggle("active",!only);$("#list-view").setAttribute("aria-pressed",String(only));$("#split-view").setAttribute("aria-pressed",String(!only));if(!only&&map)setTimeout(()=>map.invalidateSize(),10);}
     function filtersMatch(x){
       const s=$("#source").value,b=$("#beds").value,a=$("#area").value,cap=Math.min(3000,Math.max(500,Number($("#rent").value)||3000));
-      return (s==="both"||x.source_kind===s)&&Number(x.rent)<=cap&&(!a||x.area===a)&&(b==="all"||Number(x.bedrooms)===Number(b))&&(!$("#noFee").checked||feeReported(x));
+      return !roomRental(x)&&(s==="both"||x.source_kind===s)&&Number(x.rent)<=cap&&(!a||x.area===a)&&(b==="all"||Number(x.bedrooms)===Number(b))&&(!$("#noFee").checked||feeReported(x));
     }
-    function listForView(){const sort=$("#sort").value;let data=listings.filter(filtersMatch);data.sort((a,b)=>sort==="low"?Number(a.rent)-Number(b.rent):sort==="high"?Number(b.rent)-Number(a.rent):sort==="size"?Number(b.sqft||0)-Number(a.sqft||0):freshDate(b).localeCompare(freshDate(a)));return data;}
+    function listForView(){const sort=$("#sort").value;let data=listings.filter(filtersMatch);data.sort((a,b)=>sort==="low"?Number(a.rent)-Number(b.rent):sort==="high"?Number(b.rent)-Number(a.rent):sort==="size"?Number(b.sqft||0)-Number(a.sqft||0):sort==="campus"?campusDistance(a)-campusDistance(b):freshDate(b).localeCompare(freshDate(a)));return data;}
     function showMarker(id){const found=markerIndex.get(String(id));if(!map||!found)return;setListOnly(false);setTimeout(()=>{map.invalidateSize();map.setView(found.getLatLng(),Math.max(map.getZoom(),15),{animate:true});found.openPopup();if(window.matchMedia("(max-width:760px)").matches)$("#map").scrollIntoView({behavior:"smooth",block:"center"});},25);}
     function listingCard(x,idx){
       const card=text("article","listing-card","");
@@ -258,7 +276,10 @@
         body.append(text("span","change-sticker drop","Price ↓ "+money(Math.abs(Number(x.price_change)))+" vs prior check"));
       }
       body.append(text("div","card-address",(x.address||"Address not provided")+(x.unit?" · Unit "+x.unit:"")),text("span","area-tag",x.area||"Area not listed"));
-      const facts=text("div","card-facts","");if(x.bathrooms!==null&&x.bathrooms!==undefined&&x.bathrooms!=="")facts.append(text("span","",Number(x.bathrooms)+" bath"+(Number(x.bathrooms)===1?"":"s")));if(Number(x.sqft)>0)facts.append(text("span","",Math.round(Number(x.sqft)).toLocaleString()+" sq ft"));if(feeReported(x))facts.append(text("span","no-fee","✓ No fee reported"));if(photoAdvertised)facts.append(text("span","photo-ref","Photo references at posting"));body.append(facts);
+      const facts=text("div","card-facts","");if(x.bathrooms!==null&&x.bathrooms!==undefined&&x.bathrooms!=="")facts.append(text("span","",Number(x.bathrooms)+" bath"+(Number(x.bathrooms)===1?"":"s")));if(Number(x.sqft)>0)facts.append(text("span","",Math.round(Number(x.sqft)).toLocaleString()+" sq ft"));if(feeReported(x))facts.append(text("span","no-fee","✓ No fee reported"));if(photoAdvertised)facts.append(text("span","photo-ref","Photo references at posting"));
+      const d=campusDistance(x);if(Number.isFinite(d))facts.append(text("span","campus-distance",d.toFixed(1)+" mi from Columbia · straight line"));
+      body.append(facts);
+      body.append(text("small","unit-disclaimer","Room shares excluded when identified · Entire-unit status and private kitchen/bath not independently verified"));
       const foot=text("div","card-foot","");foot.append(text("span","date-info",x.source_kind==="rentcast"?"Provider last saw: "+dateOnly(x.last_seen):"First advertised: "+dateOnly(x.listed_at)));
       const links=text("div","card-links","");const loc=Number(x.latitude),lng=Number(x.longitude);if(Number.isFinite(loc)&&Number.isFinite(lng)&&x.latitude!=null&&x.longitude!=null){const jump=text("button","map-jump","Map");jump.type="button";jump.setAttribute("aria-label","Show "+(x.address||"this apartment")+" on map");jump.addEventListener("click",()=>showMarker(x.id));links.append(jump);}
       const url=originalListing;if(url){const a=text("a","card-link",x.source_kind==="rentcast"?"Search address":photoAdvertised?"Listing & photos":"Open listing");a.href=url;a.target="_blank";a.rel="noopener noreferrer";a.append(svg("external"));a.setAttribute("aria-label",x.source_kind==="rentcast"?"Search the web for this address":"Open original listing in a new tab");links.append(a);}else links.append(text("span","date-info","Link unavailable"));foot.append(links);body.append(foot);card.append(body);return card;
@@ -292,7 +313,7 @@
       const labels=$("#source-counts");labels.replaceChildren();if(rcCount)labels.append(text("span","count-pill",rcCount+" RentCast"));if(histCount)labels.append(text("span","count-pill historical",histCount+" historical"));
       const rcChecked=dateOnly(feedMetadata.rcChecked),fmMonth=feedMetadata.fmMonth||"unknown";const mode=$("#source").value;
       summary.textContent=(mode==="historical"?"FirstMover snapshot "+fmMonth+" · not live":mode==="rentcast"?"RentCast checked "+rcChecked+" · provider-reported active":"RentCast checked "+rcChecked+" · FirstMover "+fmMonth);
-      $("#source-note").textContent=mode==="historical"?"FirstMover records reflect initial advertisements, not current availability or updated prices. Verify listing status independently.":mode==="rentcast"?"RentCast marked these listings active at its last check; availability is not guaranteed. Manhattan neighborhood boundaries are approximate.":"Sources have different freshness: RentCast reflects a recent provider check, while FirstMover records are historical. Verify each separately.";
+      $("#source-note").textContent=mode==="historical"?"FirstMover records are historical, not currently verified available. Identified room shares are excluded; confirm the lease covers an entire private apartment.":mode==="rentcast"?"RentCast listings are provider-reported active, not guaranteed available. Identified room shares are excluded, but private-unit status is not independently verified. Neighborhood boundaries are approximate.":"Sources have different freshness. Identified room shares are excluded, but check whether each listing includes a private bathroom, kitchen and entire-unit lease.";
       cards.replaceChildren();if(!shown.length){const empty=text("div","empty","");empty.append(text("strong","",showSaved?"No saved apartments match these filters":"No matching listings"),text("div","",showSaved?"Save an apartment with the heart icon or loosen your filters.":"Try another neighborhood or source. If you've selected 'no-fee', note that many listings do not report fee status."));cards.append(empty);}else{const frag=document.createDocumentFragment();shown.forEach((x,i)=>frag.append(listingCard(x,i)));cards.append(frag);}refreshPins(shown);
     }
     for(const id of ["source","area","rent","beds","sort","noFee"])$("#"+id).addEventListener("change",render);
