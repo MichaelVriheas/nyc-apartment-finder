@@ -41,6 +41,17 @@ The comparison table includes monthly and annualized **advertised base rent** (a
 
 For real walking or subway routes, the table links out to Google Maps for current directions and travel times; it **does not estimate, store or compare future commute times** or make any additional API calls. RentCast statuses are provider-reported, and FirstMover entries are historical advertisements, so a side-by-side comparison does not prove current availability or lease terms.
 
+## Market Insights (separate page)
+
+Open [Market Insights](https://michaelvriheas.github.io/nyc-apartment-finder/market-insights.html) from the navigation bar beside **Marketplace**. This is a separate static page (`site/market-insights.html`); it does not clutter the apartment marketplace and it does not need an additional hosting service.
+
+- **Snapshot overview:** number of sampled matching listings, median advertised base rent (when at least three observations exist), distinct comparable data checks, and latest check date
+- **Neighborhood medians:** side-by-side comparisons across the eight selected Manhattan areas, with counts visible; medians for fewer than three sampled matches are deliberately withheld
+- **Historical trend:** a chart of only **actual saved RentCast observations**, selectable by neighborhood and studio/one-bedroom type. A single baseline is shown as one point, not an invented monthly line. Observations collected using a different search method are **never connected** as though directly comparable
+- **Data caveats:** the data covers only rentals already filtered to $2,250–$3,000, not all rental inventory; RentCast availability is provider-reported, API searches can be capped at 500 results each, and smaller neighborhood labels are approximate. FirstMover's historical initial advertisements are not included in these median series
+
+`site/data/market-history.json` begins with the **actual November 21, 2026 saved snapshot** (74 qualifying RentCast records following geographic reclassification). This was a one-region, response-limited sample, so it remains distinct from the next two-region methodology. **Each successful future RentCast refresh adds a compact, dated aggregate record** via `scripts/rent_history.py`, and the workflow commits it together with `site/data/rentcast.json`. There are no fabricated months, no extra RentCast API requests for analytics, and no paid chart libraries.
+
 ## Geographic search coverage and change-tracking reset
 
 Previously a single 3.7-mile circular query reached the RentCast 500-result cap, and simple latitude/longitude rectangles incorrectly categorized Bronx addresses as South Harlem. The saved November 21, 2026 snapshot was **reclassified without making API requests**, reducing the stored RentCast records from 114 to 74 target-area matches. This removes wrong-borough and non-target neighborhood records; it **does not establish that 74 is a complete list**.
@@ -75,6 +86,8 @@ The key is stored only in a GitHub Actions secret called `RENTCAST_API_KEY`. Nev
 ## Files
 
 - `site/index.html`: searchable dashboard, map, source selector, local favorites and side-by-side comparison UI
+- `site/market-insights.html`: standalone neighborhood market statistics and observed rent charts
+- `site/data/market-history.json` and `scripts/rent_history.py`: compact genuine saved RentCast aggregate history
 - `scripts/update_listings.py`: FirstMover monthly historical-data importer
 - `scripts/areas.py` and `site/data/manhattan-nta-areas.geojson`: NTA polygon matching and source geometry (NYC DCP)
 - `scripts/fetch_rentcast.py`: RentCast API importer, filtering and budget reservation
