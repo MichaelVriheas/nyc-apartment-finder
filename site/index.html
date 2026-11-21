@@ -40,7 +40,7 @@
     .filter-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
     .filter-heading{display:flex;align-items:center;gap:8px;font-weight:800;color:#203c57;font-size:14px}
     .filter-meta{color:var(--muted);font-size:12px}
-    .filter-grid{display:grid;grid-template-columns:minmax(154px,1.4fr) minmax(147px,1.2fr) minmax(122px,1fr) minmax(140px,1.05fr) minmax(139px,1fr) auto auto;gap:11px;align-items:end}
+    .filter-grid{display:grid;grid-template-columns:minmax(144px,1.35fr) minmax(140px,1.15fr) minmax(106px,.75fr) minmax(106px,.75fr) minmax(125px,1fr) minmax(128px,.95fr) auto auto;gap:11px;align-items:end}
     .field{min-width:0}.field label{display:block;font-weight:750;font-size:11px;text-transform:uppercase;letter-spacing:.055em;margin-bottom:7px;color:#65748a}
     .field input,.field select{width:100%;height:41px;min-width:0;border:1px solid #d5dfe9;border-radius:9px;color:var(--navy);background-color:#fff;padding:0 12px;outline-color:var(--teal);font-size:13px;font-weight:630}
     .field select{padding-right:20px}.fee-field{padding-bottom:4px}.fee-check{min-height:38px;display:flex;gap:8px;align-items:center;white-space:nowrap;font-weight:630;color:#40536c;font-size:12px}.fee-check input{accent-color:var(--teal);width:17px;height:17px;cursor:pointer}
@@ -141,7 +141,7 @@
         <nav class="header-nav" aria-label="Main navigation"><a href="#filters" class="nav-link active"><svg><use href="#i-search"/></svg><span class="nav-label">Explore rentals</span></a><a href="#results" class="nav-link" id="header-favorites"><svg><use href="#i-heart"/></svg><span class="nav-label">Saved favorites</span><span class="fav-bubble" id="fav-total">0</span></a></nav>
       </div>
       <div class="overview" aria-label="Search preferences">
-        <div class="chip"><svg><use href="#i-wallet"/></svg> Max base rent <b>$3,000</b></div>
+        <div class="chip"><svg><use href="#i-wallet"/></svg> Monthly base rent <b>$2,250–$3,000</b></div>
         <div class="chip"><svg><use href="#i-bed"/></svg> Studio + <b>1 bedroom</b></div>
         <div class="chip"><svg><use href="#i-pin"/></svg> <b>8</b> search areas</div>
         <div class="chip"><svg><use href="#i-layers"/></svg> <b>RentCast + FirstMover</b></div>
@@ -154,7 +154,8 @@
       <div class="filter-grid">
         <div class="field"><label for="source">Listing source</label><select id="source"><option value="rentcast">RentCast · recently checked</option><option value="historical">FirstMover · historical</option><option value="both">Both data sources</option></select></div>
         <div class="field"><label for="area">Neighborhood</label><select id="area"><option value="">All 8 areas</option></select></div>
-        <div class="field"><label for="rent">Max base rent ($)</label><input id="rent" type="number" min="500" max="3000" step="100" value="3000" inputmode="numeric"></div>
+        <div class="field"><label for="minRent">Min base rent ($)</label><input id="minRent" type="number" min="2250" max="3000" step="50" value="2250" inputmode="numeric"></div>
+        <div class="field"><label for="rent">Max base rent ($)</label><input id="rent" type="number" min="2250" max="3000" step="50" value="3000" inputmode="numeric"></div>
         <div class="field"><label for="beds">Apartment type</label><select id="beds"><option value="all">Studio + 1 bedroom</option><option value="0">Studio only</option><option value="1">1 bedroom only</option></select></div>
         <div class="field"><label for="sort">Sort</label><select id="sort"><option value="new">Newest advertised</option><option value="low">Rent: low to high</option><option value="high">Rent: high to low</option><option value="size">Largest floor area</option><option value="campus">Closest to Columbia · direct distance</option></select></div>
         <div class="field fee-field"><label for="noFee">Broker fee</label><label class="fee-check"><input type="checkbox" id="noFee"><span>Reported no-fee</span></label></div>
@@ -226,9 +227,15 @@
     function saveFavorite(id){const key=String(id);if(favorites.has(key))favorites.delete(key);else favorites.add(key);try{localStorage.setItem("nyc-apartment-favorites",JSON.stringify([...favorites]));}catch(e){console.warn("Could not save favorite",e);}render();}
     function setSavedMode(saved){showSaved=saved;$("#all").classList.toggle("active",!saved);$("#saved").classList.toggle("active",saved);$("#all").setAttribute("aria-pressed",String(!saved));$("#saved").setAttribute("aria-pressed",String(saved));render();}
     function setListOnly(only){workspace.classList.toggle("list-only",only);$("#list-view").classList.toggle("active",only);$("#split-view").classList.toggle("active",!only);$("#list-view").setAttribute("aria-pressed",String(only));$("#split-view").setAttribute("aria-pressed",String(!only));if(!only&&map)setTimeout(()=>map.invalidateSize(),10);}
+    const clampRent=(v,fallback)=>Math.min(3000,Math.max(2250,Math.round(Number(v)||fallback)));
+    function normalizeRentFields(changed){
+      let minimum=clampRent($("#minRent").value,2250),maximum=clampRent($("#rent").value,3000);
+      if(minimum>maximum){if(changed==="max")minimum=maximum;else maximum=minimum;}
+      $("#minRent").value=String(minimum);$("#rent").value=String(maximum);
+    }
     function filtersMatch(x){
-      const s=$("#source").value,b=$("#beds").value,a=$("#area").value,cap=Math.min(3000,Math.max(500,Number($("#rent").value)||3000));
-      return !roomRental(x)&&(s==="both"||x.source_kind===s)&&Number(x.rent)<=cap&&(!a||x.area===a)&&(b==="all"||Number(x.bedrooms)===Number(b))&&(!$("#noFee").checked||feeReported(x));
+      const s=$("#source").value,b=$("#beds").value,a=$("#area").value,minimum=clampRent($("#minRent").value,2250),cap=clampRent($("#rent").value,3000);
+      return !roomRental(x)&&(s==="both"||x.source_kind===s)&&Number(x.rent)>=minimum&&Number(x.rent)<=cap&&(!a||x.area===a)&&(b==="all"||Number(x.bedrooms)===Number(b))&&(!$("#noFee").checked||feeReported(x));
     }
     function listForView(){const sort=$("#sort").value;let data=listings.filter(filtersMatch);data.sort((a,b)=>sort==="low"?Number(a.rent)-Number(b.rent):sort==="high"?Number(b.rent)-Number(a.rent):sort==="size"?Number(b.sqft||0)-Number(a.sqft||0):sort==="campus"?campusDistance(a)-campusDistance(b):freshDate(b).localeCompare(freshDate(a)));return data;}
     function showMarker(id){const found=markerIndex.get(String(id));if(!map||!found)return;setListOnly(false);setTimeout(()=>{map.invalidateSize();map.setView(found.getLatLng(),Math.max(map.getZoom(),15),{animate:true});found.openPopup();if(window.matchMedia("(max-width:760px)").matches)$("#map").scrollIntoView({behavior:"smooth",block:"center"});},25);}
@@ -316,10 +323,11 @@
       $("#source-note").textContent=mode==="historical"?"FirstMover records are historical, not currently verified available. Identified room shares are excluded; confirm the lease covers an entire private apartment.":mode==="rentcast"?"RentCast listings are provider-reported active, not guaranteed available. Identified room shares are excluded, but private-unit status is not independently verified. Neighborhood boundaries are approximate.":"Sources have different freshness. Identified room shares are excluded, but check whether each listing includes a private bathroom, kitchen and entire-unit lease.";
       cards.replaceChildren();if(!shown.length){const empty=text("div","empty","");empty.append(text("strong","",showSaved?"No saved apartments match these filters":"No matching listings"),text("div","",showSaved?"Save an apartment with the heart icon or loosen your filters.":"Try another neighborhood or source. If you've selected 'no-fee', note that many listings do not report fee status."));cards.append(empty);}else{const frag=document.createDocumentFragment();shown.forEach((x,i)=>frag.append(listingCard(x,i)));cards.append(frag);}refreshPins(shown);
     }
-    for(const id of ["source","area","rent","beds","sort","noFee"])$("#"+id).addEventListener("change",render);
-    $("#rent").addEventListener("blur",()=>{const n=Math.round(Number($("#rent").value)||3000);$("#rent").value=String(Math.min(3000,Math.max(500,n)));render();});
-    $("#apply").addEventListener("click",()=>{$("#rent").value=String(Math.min(3000,Math.max(500,Math.round(Number($("#rent").value)||3000))));render();$("#results").scrollIntoView({behavior:"smooth",block:"start"});});
-    $("#reset").addEventListener("click",()=>{$("#source").value=rentcast.length?"rentcast":"historical";$("#area").value="";$("#rent").value="3000";$("#beds").value="all";$("#sort").value="new";$("#noFee").checked=false;changeMode="all";render();});
+    for(const id of ["source","area","beds","sort","noFee"])$("#"+id).addEventListener("change",render);
+    $("#minRent").addEventListener("change",()=>{normalizeRentFields("min");render();});
+    $("#rent").addEventListener("change",()=>{normalizeRentFields("max");render();});
+    $("#apply").addEventListener("click",()=>{normalizeRentFields("min");render();$("#results").scrollIntoView({behavior:"smooth",block:"start"});});
+    $("#reset").addEventListener("click",()=>{$("#source").value=rentcast.length?"rentcast":"historical";$("#area").value="";$("#minRent").value="2250";$("#rent").value="3000";$("#beds").value="all";$("#sort").value="new";$("#noFee").checked=false;changeMode="all";render();});
     for(const [id,kind] of [["change-all","all"],["change-new","newly_seen"],["change-drops","price_drop"]]){
       $("#"+id).addEventListener("click",()=>{changeMode=kind;render();});
     }
