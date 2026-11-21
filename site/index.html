@@ -64,6 +64,18 @@
     .results-overview{padding:14px 1px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
     .results-title{font-weight:840;font-size:20px;letter-spacing:-.5px;color:var(--navy)}.results-subtitle{margin:4px 0 0;color:#748297;font-size:12px}.source-counts{display:flex;gap:7px;flex-wrap:wrap}
     .count-pill{display:inline-block;font-size:11px;padding:5px 9px;border-radius:8px;background:#e9f5f1;color:#126d65;font-weight:700}.count-pill.historical{background:#eff2f6;color:#66768c}
+    .change-panel{background:#fff;border:1px solid var(--border);border-radius:15px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:15px;display:flex;justify-content:space-between;align-items:center;gap:13px;flex-wrap:wrap}
+    .change-panel-title{font-weight:800;color:var(--navy);font-size:14px}
+    .change-panel-text{font-size:11px;color:var(--muted);margin-top:4px;max-width:520px}
+    .change-stats{display:flex;gap:7px;flex-wrap:wrap}
+    .change-stat{background:#f4f7fa;color:#33536c;border:1px solid #dbe5ed;border-radius:10px;padding:7px 10px;font-weight:740;white-space:nowrap;font-size:11px}
+    .change-stat b{font-size:14px;color:var(--navy)}
+    .change-stat.active{background:#e6f5f2;border-color:#8cd3c5;color:#006a61}
+    .change-stat.active b{color:#006a61}
+    .change-stat:disabled{opacity:.65}
+    .change-falloff{color:#657589;font-size:11px;flex-basis:100%}
+    .change-sticker{display:inline-block;border-radius:7px;padding:4px 7px;background:#e3f4ed;color:#0e7253;font-size:11px;font-weight:790;margin-top:7px;margin-right:5px}
+    .change-sticker.drop{background:#edf8e7;color:#3c7f25}
     .card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
     .listing-card{min-width:0;background:#fff;border:1px solid var(--border);border-radius:15px;overflow:hidden;box-shadow:var(--shadow);transition:transform .15s ease,box-shadow .15s ease}
     .listing-card:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(14,36,64,.09)}
@@ -152,6 +164,15 @@
       <aside class="map-panel" aria-label="Apartment locations"><div class="map-title"><span class="panel-heading">Explore the map</span><span class="map-caption">Columbia · Upper Manhattan</span></div><div id="map" role="region" aria-label="Interactive rental listing map"></div><div class="map-footer"><span><i class="legend-dot school"></i> Columbia campus</span><span><i class="legend-dot"></i> RentCast</span><span><i class="legend-dot historic"></i> Historical</span></div></aside>
       <section class="results-panel" id="results" aria-label="Search results">
         <div class="results-toolbar"><div class="toolbar-main"><div class="tab-group" role="group" aria-label="Listing selection"><button type="button" class="tab active" id="all" aria-pressed="true">All listings <span id="all-total">(0)</span></button><button type="button" class="tab" id="saved" aria-pressed="false">♡ Saved <span id="saved-total">(0)</span></button></div><div class="view-toggle" role="group" aria-label="Display mode"><button type="button" class="view-button active" id="split-view" aria-label="Show map and listing cards" aria-pressed="true"><svg><use href="#i-map"/></svg> Map + cards</button><button type="button" class="view-button" id="list-view" aria-label="Show listing cards only" aria-pressed="false"><svg><use href="#i-list"/></svg> Cards only</button></div></div><div class="results-overview"><div><div class="results-title" id="count" role="status">Loading apartments…</div><p class="results-subtitle" id="snapshot">Fetching the latest stored datasets.</p></div><div class="source-counts" id="source-counts"></div></div></div>
+        <div class="change-panel" id="changes-panel" aria-label="Changes in the last RentCast snapshot">
+          <div><div class="change-panel-title">Changes since the previous RentCast check</div><div class="change-panel-text" id="change-date">Setting up comparison tracking from the first snapshot.</div></div>
+          <div class="change-stats" aria-label="Filter recent changes">
+            <button type="button" class="change-stat active" id="change-all" aria-pressed="true">All results</button>
+            <button type="button" class="change-stat" id="change-new" aria-pressed="false"><b id="new-count">—</b> Newly seen</button>
+            <button type="button" class="change-stat" id="change-drops" aria-pressed="false"><b id="drop-count">—</b> Price drops</button>
+          </div>
+          <div class="change-falloff" id="not-seen-note">Change tracking compares saved RentCast snapshots only; it does not establish current availability.</div>
+        </div>
         <div class="card-grid" id="cards" aria-live="polite"></div>
       </section>
     </div>
@@ -164,7 +185,7 @@
     const $=s=>document.querySelector(s);
     const cards=$("#cards"), count=$("#count"), summary=$("#snapshot"), workspace=$("#workspace");
     for (const area of AREAS) {const o=document.createElement("option");o.value=o.textContent=area;$("#area").append(o);}
-    let listings=[],historical=[],rentcast=[],showSaved=false,map=null,markers=null,markerIndex=new Map(),feedMetadata={},approvedPhotos={};
+    let listings=[],historical=[],rentcast=[],showSaved=false,map=null,markers=null,markerIndex=new Map(),feedMetadata={},approvedPhotos={},changeMode="all";
     let favorites=new Set();
     try{const stored=JSON.parse(localStorage.getItem("nyc-apartment-favorites")||"[]");if(Array.isArray(stored))favorites=new Set(stored.map(String));}catch(e){console.warn("Favorites unavailable",e);}
     const svg=(name,cls="")=>{const el=document.createElementNS("http://www.w3.org/2000/svg","svg");if(cls)el.setAttribute("class",cls);el.setAttribute("aria-hidden","true");const use=document.createElementNS("http://www.w3.org/2000/svg","use");use.setAttribute("href","#i-"+name);el.append(use);return el;};
@@ -232,6 +253,10 @@
       visual.append(text("div","visual-note",usablePhoto?(approved.scope==="unit"?"Unit photo · ":"Building photo, not unit · ")+approved.credit:photoAdvertised?"Illustration · not unit photo":"Illustration · photo unavailable"));card.append(visual);
       const body=text("div","card-body","");const priceRow=text("div","price-row","");
       const price=text("div","rent-price",money(x.rent));price.append(text("small",""," / month"));priceRow.append(price,text("span","beds-badge",Number(x.bedrooms)===0?"Studio":"1 bedroom"));body.append(priceRow);
+      if(x.source_kind==="rentcast"&&x.change_status==="newly_seen")body.append(text("span","change-sticker","Newly found in sampled search"));
+      if(x.source_kind==="rentcast"&&x.change_status==="price_drop"&&Number(x.price_change)<0){
+        body.append(text("span","change-sticker drop","Price ↓ "+money(Math.abs(Number(x.price_change)))+" vs prior check"));
+      }
       body.append(text("div","card-address",(x.address||"Address not provided")+(x.unit?" · Unit "+x.unit:"")),text("span","area-tag",x.area||"Area not listed"));
       const facts=text("div","card-facts","");if(x.bathrooms!==null&&x.bathrooms!==undefined&&x.bathrooms!=="")facts.append(text("span","",Number(x.bathrooms)+" bath"+(Number(x.bathrooms)===1?"":"s")));if(Number(x.sqft)>0)facts.append(text("span","",Math.round(Number(x.sqft)).toLocaleString()+" sq ft"));if(feeReported(x))facts.append(text("span","no-fee","✓ No fee reported"));if(photoAdvertised)facts.append(text("span","photo-ref","Photo references at posting"));body.append(facts);
       const foot=text("div","card-foot","");foot.append(text("span","date-info",x.source_kind==="rentcast"?"Provider last saw: "+dateOnly(x.last_seen):"First advertised: "+dateOnly(x.listed_at)));
@@ -248,7 +273,19 @@
       if(coords.length){map.fitBounds(L.latLngBounds(coords).pad(.12),{maxZoom:14,animate:false});}else map.setView([40.819,-73.967],12,{animate:false});
     }
     function render(){
-      const all=listForView(),saved=all.filter(x=>favorites.has(String(x.id))),matching=showSaved?saved:all;const shown=matching.slice(0,150);
+      const allBase=listForView();
+      const all=changeMode==="all"?allBase:allBase.filter(x=>x.source_kind==="rentcast"&&x.change_status===changeMode);
+      const saved=all.filter(x=>favorites.has(String(x.id))),matching=showSaved?saved:all;const shown=matching.slice(0,150);
+      const comparison=feedMetadata.comparison;
+      const isBaseline=!comparison||comparison.baseline;
+      $("#new-count").textContent=isBaseline?"—":String(comparison.newly_found_count??0);
+      $("#drop-count").textContent=isBaseline?"—":String(comparison.price_drop_count??0);
+      $("#change-date").textContent=isBaseline?"Baseline saved. Changes will appear after the next successful weekly RentCast refresh.":("Comparing "+dateOnly(comparison.previous_checked_at_utc)+" with "+dateOnly(comparison.current_checked_at_utc)+" · all searched Manhattan areas");
+      $("#not-seen-note").textContent=isBaseline?"Tracking uses RentCast only. FirstMover advertisements are historical.":"Not found in latest sampled search: "+Number(comparison.not_found_count||0)+". These may simply be outside the first 500 API results—not necessarily rented. Counts cover all searched areas.";
+      if(isBaseline&&changeMode!=="all")changeMode="all";
+      for(const [id,kind] of [["change-all","all"],["change-new","newly_seen"],["change-drops","price_drop"]]){
+        const button=$("#"+id);button.disabled=isBaseline&&kind!=="all";button.classList.toggle("active",changeMode===kind);button.setAttribute("aria-pressed",String(changeMode===kind));
+      }
       $("#fav-total").textContent=String(favorites.size);$("#all-total").textContent="("+all.length+")";$("#saved-total").textContent="("+saved.length+")";
       count.textContent=matching.length.toLocaleString()+" matching listing"+(matching.length===1?"":"s")+(matching.length>150?" · showing first 150":"");
       const rcCount=matching.filter(x=>x.source_kind==="rentcast").length;const histCount=matching.length-rcCount;
@@ -261,7 +298,10 @@
     for(const id of ["source","area","rent","beds","sort","noFee"])$("#"+id).addEventListener("change",render);
     $("#rent").addEventListener("blur",()=>{const n=Math.round(Number($("#rent").value)||3000);$("#rent").value=String(Math.min(3000,Math.max(500,n)));render();});
     $("#apply").addEventListener("click",()=>{$("#rent").value=String(Math.min(3000,Math.max(500,Math.round(Number($("#rent").value)||3000))));render();$("#results").scrollIntoView({behavior:"smooth",block:"start"});});
-    $("#reset").addEventListener("click",()=>{$("#source").value=rentcast.length?"rentcast":"historical";$("#area").value="";$("#rent").value="3000";$("#beds").value="all";$("#sort").value="new";$("#noFee").checked=false;render();});
+    $("#reset").addEventListener("click",()=>{$("#source").value=rentcast.length?"rentcast":"historical";$("#area").value="";$("#rent").value="3000";$("#beds").value="all";$("#sort").value="new";$("#noFee").checked=false;changeMode="all";render();});
+    for(const [id,kind] of [["change-all","all"],["change-new","newly_seen"],["change-drops","price_drop"]]){
+      $("#"+id).addEventListener("click",()=>{changeMode=kind;render();});
+    }
     $("#all").addEventListener("click",()=>setSavedMode(false));$("#saved").addEventListener("click",()=>setSavedMode(true));
     $("#header-favorites").addEventListener("click",()=>setSavedMode(true));
     $("#split-view").addEventListener("click",()=>setListOnly(false));$("#list-view").addEventListener("click",()=>setListOnly(true));
@@ -270,7 +310,7 @@
       approvedPhotos=p&&p.photos&&typeof p.photos==="object"&&!Array.isArray(p.photos)?p.photos:{};
       historical=Array.isArray(h?.listings)?h.listings.map(x=>({...x,source_kind:"historical"})):[];
       rentcast=Array.isArray(r?.listings)?r.listings.map(x=>({...x,source_kind:"rentcast"})):[];
-      listings=[...rentcast,...historical];feedMetadata={rcChecked:r?.checked_at_utc||"",fmMonth:h?.data_month||""};
+      listings=[...rentcast,...historical];feedMetadata={rcChecked:r?.checked_at_utc||"",fmMonth:h?.data_month||"",comparison:r?.comparison||null};
       $("#source").value=rentcast.length?"rentcast":"historical";render();
     }).catch(e=>{console.error("Could not display listings",e);count.textContent="Listings unavailable";summary.textContent="Please check the refresh workflow.";});
   </script>
