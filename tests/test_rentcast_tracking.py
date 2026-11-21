@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 from scripts import fetch_rentcast as mod
+from scripts.unit_filter import room_rental_reason
 
 NOW = datetime.now(timezone.utc).isoformat()
 def fixture(identifier, price, latitude=40.808, longitude=-73.96, state="NY"):
@@ -80,6 +81,32 @@ class RentcastTrackingTests(unittest.TestCase):
         with patch.dict(os.environ,{"GITHUB_RUN_ID":"new-run","GITHUB_RUN_ATTEMPT":"1"}):
             mod.reserve()
         self.assertEqual(sum(x["calls"] for x in json.loads(mod.LEDGER.read_text())["entries"]),mod.BUDGET)
+
+
+class RoomRentalFilteringTests(unittest.TestCase):
+    def test_private_room_is_filtered(self):
+        self.assertIsNotNone(room_rental_reason({"bedrooms":1,"title":"Private room in a shared apartment"}))
+
+    def test_coliving_is_filtered(self):
+        self.assertIsNotNone(room_rental_reason({"description":"Modern co-living with shared kitchen and bathrooms"}))
+
+    def test_unit_room_number_is_filtered(self):
+        self.assertIsNotNone(room_rental_reason({"addressLine2":"Room 2B", "bedrooms":1}))
+
+    def test_missing_private_bath_is_filtered(self):
+        self.assertIsNotNone(room_rental_reason({"bedrooms":0,"bathrooms":0,"propertyType":"Apartment"}))
+
+    def test_valid_studio_is_not_filtered(self):
+        self.assertIsNone(room_rental_reason({"bedrooms":0,"bathrooms":1,"addressLine2":"Apt 4C",
+                                              "description":"Bright studio with living room and kitchenette"}))
+
+    def test_valid_one_bed_is_not_filtered(self):
+        self.assertIsNone(room_rental_reason({"bedrooms":1,"bathrooms":1,"unit":"Unit 3B",
+                                              "description":"One bedroom apartment with private living room"}))
+
+    def test_not_proven_private_is_not_mislabeled_as_room(self):
+        self.assertIsNone(room_rental_reason({"bedrooms":1,"bathrooms":None,
+                                              "formattedAddress":"123 Broadway, New York"}))
 
 if __name__=="__main__":
     unittest.main()
