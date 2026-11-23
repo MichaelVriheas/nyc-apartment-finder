@@ -107,15 +107,20 @@ function descendants(node){
 
 (async()=>{
   await loadPage();
-  assert.equal(manual.listings.length,1,"Expected one personally selected apartment");
-  // A manual unit must still be visible even if RentCast is the default source.
+  assert.ok(manual.listings.length>=1,"Expected at least one personally selected apartment");
+  // Every manual unit must remain visible when switching to My picks only,
+  // regardless of how many listings have been added over time.
   const onlyManual=await loadPage();
   onlyManual.elements.get("source").value="manual";
   onlyManual.elements.get("source").events.change[0]();
-  assert.equal(onlyManual.elements.get("count").textContent,"1 matching listing",
-    "My picks only must display the separately saved listing without RentCast");
-  assert.equal(onlyManual.elements.get("cards").children[0].children.find(x=>x.className==="listing-card")?.dataset.listingId,
-    manual.listings[0].id,"The visible card should have the permanent manual ID");
+  assert.equal(onlyManual.elements.get("count").textContent,
+    manual.listings.length+" matching listing"+(manual.listings.length===1?"":"s"),
+    "My picks only must display every saved listing without RentCast");
+  const manualCardIds=descendants(onlyManual.elements.get("cards"))
+    .filter(x=>x.className==="listing-card")
+    .map(x=>x.dataset.listingId);
+  assert.deepEqual(manualCardIds.sort(),manual.listings.map(x=>x.id).sort(),
+    "Each saved apartment must have a visible card with its permanent manual ID");
   await loadPage([String(rentcast.listings[0].id)]);
   const firstId=String(rentcast.listings[0].id);
   await loadPage([], [firstId]); // A hidden apartment remains hidden after a reload.
