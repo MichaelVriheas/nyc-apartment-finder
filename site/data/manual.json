@@ -1,0 +1,37 @@
+{
+  "source": "Manually selected rental listings",
+  "purpose": "Personal apartment shortlist; not a live availability feed",
+  "last_edited_at_utc": "2026-11-23",
+  "warning": "Manually saved apartments may become unavailable; availability, current asking rent, lease terms and fees require verification at the original listing. These entries are not removed by RentCast or FirstMover refreshes.",
+  "listings": [
+    {
+      "id": "manual-streeteasy-139-w-123rd-st-1s",
+      "source_kind": "manual",
+      "source_platform": "StreetEasy",
+      "details_reference": "Trulia listing for this same unit, published November 23, 2026",
+      "address": "139 W 123rd St, New York, NY 10027",
+      "unit": "1S",
+      "area": "South Harlem",
+      "area_estimated": false,
+      "property_type": "Apartment",
+      "unit_scope": "unverified_entire_unit",
+      "rent": 2550,
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "sqft": null,
+      "latitude": 40.80733,
+      "longitude": -73.947897,
+      "listed_at": "2026-11-23",
+      "added_at": "2026-11-23",
+      "last_seen": "",
+      "status_at_check": "Not independently verified",
+      "availability_note": "Advertised for December 23, 2026; confirm current availability directly",
+      "no_fee_at_posting": "",
+      "url": "https://streeteasy.com/building/139-west-123-street-new_york/1s",
+      "details_reference_url": "https://www.trulia.com/home/139-w-123rd-st-1s-new-york-ny-10027-466755776",
+      "photo_ids": [],
+      "price_change": 0,
+      "change_status": "manual"
+    }
+  ]
+}
