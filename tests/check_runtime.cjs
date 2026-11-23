@@ -11,7 +11,7 @@ assert.equal(scripts.length,1,"Expected exactly one inline application script");
 const rentcast = JSON.parse(fs.readFileSync("site/data/rentcast.json","utf8"));
 assert.ok(rentcast.listings.length>0,"The saved RentCast snapshot must contain test fixtures");
 
-async function loadPage(selectedIds = []) {
+async function loadPage(selectedIds = [], hiddenIds = []) {
   const elements=new Map(),allElements=[],errors=[];
   class Node {
     constructor(tag="div") {
@@ -70,7 +70,7 @@ async function loadPage(selectedIds = []) {
     createElementNS:(ns,tag)=>new Node(tag),
     createDocumentFragment:()=>new Node("fragment")
   };
-  const store=new Map([["nyc-apartment-comparison-v1",JSON.stringify(selectedIds)]]);
+  const store=new Map([["nyc-apartment-comparison-v1",JSON.stringify(selectedIds)],["nyc-apartment-hidden-v1",JSON.stringify(hiddenIds)]]);
   const localStorage={
     getItem:k=>store.get(k)??null,
     setItem:(k,v)=>store.set(k,String(v))
@@ -91,15 +91,41 @@ async function loadPage(selectedIds = []) {
   const count=bySelector("#count").textContent;
   assert.match(count,/^\d+ matching listings?/, "First page load must display a real count; got "+count);
   const displayedCount=Number(count.match(/^\d+/)[0]);
-  assert.equal(displayedCount,rentcast.listings.length,"All saved matching RentCast listings should be shown on fresh load");
+  assert.equal(displayedCount,rentcast.listings.length-hiddenIds.length,"The default marketplace must exclude hidden listings");
+  assert.equal(bySelector("#hidden-total").textContent,"("+hiddenIds.length+")","Hidden tab count should reflect matching hidden listings");
   assert.ok(bySelector("#cards").children.length>0,"Listing cards should be rendered");
   if(selectedIds.length){
     assert.ok(bySelector("#compare-count").textContent.includes("of 3 selected"),"Comparison state must initialize on reload");
   }
+  return {elements,store,document,allElements};
+}
+function descendants(node){
+  return [node,...(node.children||[]).flatMap(descendants)];
 }
 
 (async()=>{
   await loadPage();
   await loadPage([String(rentcast.listings[0].id)]);
-  console.log("Passed startup smoke tests: listings and comparison reinitialize on page reload.");
+  const firstId=String(rentcast.listings[0].id);
+  await loadPage([], [firstId]); // A hidden apartment remains hidden after a reload.
+  const state=await loadPage([firstId]);
+  const firstCard=state.elements.get("cards").children[0].children.find(n=>n.className==="listing-card");
+  assert.ok(firstCard,"Expected first visible apartment card");
+  const hide=descendants(firstCard).find(n=>n.className.split(/\\s+/).includes("hide-listing-btn"));
+  assert.ok(hide?.events.click?.[0],"Each listing needs a working Hide apartment control");
+  const hiddenId=firstCard.dataset.listingId;
+  hide.events.click[0]();
+  assert.ok(JSON.parse(state.store.get("nyc-apartment-hidden-v1")).includes(hiddenId),"Hiding a listing must persist");
+  assert.equal(state.elements.get("count").textContent,(rentcast.listings.length-1)+" matching listings","Hiding should narrow visible marketplace results");
+  assert.equal(state.elements.get("hidden-total").textContent,"(1)","Hidden count should increase");
+  state.elements.get("hidden-listings").events.click[0]();
+  assert.equal(state.elements.get("count").textContent,"1 hidden apartment","Hidden view should allow a user to find the excluded apartment");
+  const hiddenCard=state.elements.get("cards").children[0].children.find(n=>n.className==="listing-card");
+  const restore=descendants(hiddenCard).find(n=>n.className.split(/\\s+/).includes("hide-listing-btn"));
+  assert.ok(restore?.textContent.includes("Restore"),"Hidden apartments need a Restore action");
+  restore.events.click[0]();
+  assert.equal(JSON.parse(state.store.get("nyc-apartment-hidden-v1")).length,0,"Restoring should clear the personal exclusion");
+  state.elements.get("all").events.click[0]();
+  assert.equal(state.elements.get("count").textContent,rentcast.listings.length+" matching listings","Restored apartment should return to marketplace");
+  console.log("Passed startup smoke tests: listing refresh, saved comparisons, hide/restore and reload persistence.");
 })().catch(err=>{console.error(err);process.exitCode=1;});
