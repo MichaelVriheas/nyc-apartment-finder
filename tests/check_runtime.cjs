@@ -9,6 +9,8 @@ const html = fs.readFileSync("site/index.html", "utf8");
 const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1].trim()).filter(Boolean);
 assert.equal(scripts.length,1,"Expected exactly one inline application script");
 const rentcast = JSON.parse(fs.readFileSync("site/data/rentcast.json","utf8"));
+const manual = JSON.parse(fs.readFileSync("site/data/manual.json","utf8"));
+const expectedTotal=rentcast.listings.length+manual.listings.length;
 assert.ok(rentcast.listings.length>0,"The saved RentCast snapshot must contain test fixtures");
 
 async function loadPage(selectedIds = [], hiddenIds = []) {
@@ -76,8 +78,8 @@ async function loadPage(selectedIds = [], hiddenIds = []) {
     setItem:(k,v)=>store.set(k,String(v))
   };
   const fetch=async path=>({
-    ok:path==="./data/rentcast.json"||path==="./data/approved-photos.json",
-    json:async ()=>path==="./data/rentcast.json"?rentcast:{"photos":{}}
+    ok:path==="./data/rentcast.json"||path==="./data/manual.json"||path==="./data/approved-photos.json",
+    json:async ()=>path==="./data/rentcast.json"?rentcast:path==="./data/manual.json"?manual:{"photos":{}}
   });
   const logger={
     log:()=>{},warn:()=>{},
@@ -91,7 +93,7 @@ async function loadPage(selectedIds = [], hiddenIds = []) {
   const count=bySelector("#count").textContent;
   assert.match(count,/^\d+ matching listings?/, "First page load must display a real count; got "+count);
   const displayedCount=Number(count.match(/^\d+/)[0]);
-  assert.equal(displayedCount,rentcast.listings.length-hiddenIds.length,"The default marketplace must exclude hidden listings");
+  assert.equal(displayedCount,expectedTotal-hiddenIds.length,"The default marketplace must include manual picks and exclude hidden listings");
   assert.equal(bySelector("#hidden-total").textContent,"("+hiddenIds.length+")","Hidden tab count should reflect matching hidden listings");
   assert.ok(bySelector("#cards").children.length>0,"Listing cards should be rendered");
   if(selectedIds.length){
@@ -105,6 +107,15 @@ function descendants(node){
 
 (async()=>{
   await loadPage();
+  assert.equal(manual.listings.length,1,"Expected one personally selected apartment");
+  // A manual unit must still be visible even if RentCast is the default source.
+  const onlyManual=await loadPage();
+  onlyManual.elements.get("source").value="manual";
+  onlyManual.elements.get("source").events.change[0]();
+  assert.equal(onlyManual.elements.get("count").textContent,"1 matching listing",
+    "My picks only must display the separately saved listing without RentCast");
+  assert.equal(onlyManual.elements.get("cards").children[0].children.find(x=>x.className==="listing-card")?.dataset.listingId,
+    manual.listings[0].id,"The visible card should have the permanent manual ID");
   await loadPage([String(rentcast.listings[0].id)]);
   const firstId=String(rentcast.listings[0].id);
   await loadPage([], [firstId]); // A hidden apartment remains hidden after a reload.
@@ -116,7 +127,7 @@ function descendants(node){
   const hiddenId=firstCard.dataset.listingId;
   hide.events.click[0]();
   assert.ok(JSON.parse(state.store.get("nyc-apartment-hidden-v1")).includes(hiddenId),"Hiding a listing must persist");
-  assert.equal(state.elements.get("count").textContent,(rentcast.listings.length-1)+" matching listings","Hiding should narrow visible marketplace results");
+  assert.equal(state.elements.get("count").textContent,(expectedTotal-1)+" matching listings","Hiding should narrow visible marketplace results");
   assert.equal(state.elements.get("hidden-total").textContent,"(1)","Hidden count should increase");
   state.elements.get("hidden-listings").events.click[0]();
   assert.equal(state.elements.get("count").textContent,"1 hidden apartment","Hidden view should allow a user to find the excluded apartment");
@@ -126,6 +137,6 @@ function descendants(node){
   restore.events.click[0]();
   assert.equal(JSON.parse(state.store.get("nyc-apartment-hidden-v1")).length,0,"Restoring should clear the personal exclusion");
   state.elements.get("all").events.click[0]();
-  assert.equal(state.elements.get("count").textContent,rentcast.listings.length+" matching listings","Restored apartment should return to marketplace");
+  assert.equal(state.elements.get("count").textContent,expectedTotal+" matching listings","Restored apartment should return to marketplace");
   console.log("Passed startup smoke tests: listing refresh, saved comparisons, hide/restore and reload persistence.");
 })().catch(err=>{console.error(err);process.exitCode=1;});
