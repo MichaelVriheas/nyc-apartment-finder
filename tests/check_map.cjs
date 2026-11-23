@@ -6,6 +6,8 @@ const html=fs.readFileSync("site/index.html","utf8");
 const script=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1].trim()).find(Boolean);
 assert.ok(script,"Inline map script not found");
 const rentcast=JSON.parse(fs.readFileSync("site/data/rentcast.json","utf8"));
+const manual=JSON.parse(fs.readFileSync("site/data/manual.json","utf8"));
+assert.ok(manual.listings.length>0,"Manual My Picks must contain a saved apartment");
 // The map shows the default "Newest advertised" sort, not JSON file order.
 const example=[...rentcast.listings].sort((a,b)=>String(b.listed_at||b.last_seen||"").localeCompare(String(a.listed_at||a.last_seen||"")))[0];
 assert.ok(example?.url?.startsWith("https:"),"Expected a saved RentCast listing URL");
@@ -129,7 +131,8 @@ async function test(){
   const fetch=async path=>({
     ok:true,
     json:async()=>path.endsWith("rentcast.json")?rentcast:
-      path.endsWith("listings.json")?{listings:[historical],data_month:"2026-11"}:{photos:{}}
+      path.endsWith("listings.json")?{listings:[historical],data_month:"2026-11"}:
+      path.endsWith("manual.json")?manual:{photos:{}}
   });
   const sandbox={document,L,localStorage,fetch,URL,URLSearchParams,setTimeout,clearTimeout,
     window:{matchMedia:()=>({matches:false})},console:{log(){},warn(){},
@@ -137,8 +140,11 @@ async function test(){
   vm.runInNewContext(script,sandbox,{filename:"site/index.html",timeout:5000});
   await delay(30);
   assert.equal(errors.length,0,"Map first load failed: "+errors.join("; "));
-  assert.equal(markerList.length,rentcast.listings.length,"Map should show every matching RentCast pin");
-  const marker=markerList[0];
+  assert.equal(markerList.length,rentcast.listings.length+manual.listings.length,
+    "Default map should show both RentCast and My Picks");
+  const descendants=(node)=>[node,...node.children.flatMap(descendants)];
+  const marker=markerList.find(pin=>descendants(pin.getPopup().content).some(n=>n.textContent===example.address));
+  assert.ok(marker,"Newest RentCast listing must have a map marker");
   assert.ok(marker.handlers.mouseover&&marker.handlers.mouseout&&marker.handlers.click,
     "Markers need hover and click handlers");
   assert.equal(marker.options.keyboard,true,"Map pins must support keyboard activation");
@@ -146,7 +152,6 @@ async function test(){
   marker.handlers.mouseover();
   assert.equal(marker.isPopupOpen(),true,"Hover must open the apartment preview");
   const content=marker.getPopup().content;
-  const descendants=(node)=>[node,...node.children.flatMap(descendants)];
   const displayed=descendants(content).map(n=>n.textContent).join(" ");
   assert.ok(displayed.includes(example.address),"Popup needs apartment address");
   assert.ok(displayed.includes("$"+example.rent.toLocaleString()),"Popup needs monthly asking rent");
@@ -174,6 +179,21 @@ async function test(){
   await delay(400);
   assert.equal(marker.isPopupOpen(),true,"Click/tap must keep the popup open");
   marker.closePopup();
+
+  // Manual My Picks must have its own pin with direct original listing link.
+  get("#source").value="manual";
+  get("#source").events.change[0]();
+  assert.equal(markerList.length,manual.listings.length,"My Picks source must show only manually selected apartments");
+  const userPin=markerList[0];
+  userPin.handlers.mouseover();
+  const manualContent=descendants(userPin.getPopup().content);
+  const userLink=manualContent.find(n=>n.tag==="a");
+  assert.equal(userLink?.href,manual.listings[0].url,"Manually selected pin must link back to user's StreetEasy URL");
+  assert.equal(userLink.textContent,"Original listing ↗","Manual listing must not be called address search");
+  const status=manualContent.map(n=>n.textContent).join(" ");
+  assert.ok(status.includes("availability unverified"),"Manual listing must never claim verified availability");
+  assert.ok(status.includes("December 23, 2026"),"Manual popup should show advertised availability date");
+  assert.ok(userPin.options.icon.options.html.includes("manual"),"Manual listings must use distinctive pin styling");
 
   // FirstMover is historical and has a real source listing URL, not an address lookup.
   get("#source").value="historical";
