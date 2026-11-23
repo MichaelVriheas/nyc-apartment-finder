@@ -43,7 +43,7 @@ The GitHub Actions workflow runs `tests/check_map.cjs` in addition to first-load
 
 ## Automatic removal of listings and personal Hide/Restore
 
-**Current provider-reported listings:** Each *successful, budget-authorized* weekly RentCast refresh requests listings with status `Active`, rejects any returned rows without that status, and **replaces** the full saved `site/data/rentcast.json` snapshot instead of appending to it. An apartment absent from the latest returned filtered sample is **not carried forward onto the RentCast marketplace**; inactive/off-market results are excluded. This has been true since the original importer and is now explicitly covered by the offline replacement regression test. The first saved refresh using the current two-search method occurred November 23, 2026, returning 64 matching Active records; it started a new comparison baseline because the geography/search method changed. The request budget and update schedule are unchanged.
+**Current provider-reported listings:** Each *successful, budget-authorized* Monday/Thursday RentCast refresh requests listings with status `Active`, rejects any returned rows without that status, and **replaces** the full saved `site/data/rentcast.json` snapshot instead of appending to it. An apartment absent from the latest returned filtered sample is **not carried forward onto the RentCast marketplace**; inactive/off-market results are excluded. This has been true since the original importer and is now explicitly covered by the offline replacement regression test. The first saved refresh using the current two-search method occurred November 23, 2026, returning 64 matching Active records; it started a new comparison baseline because the geography/search method changed. The request budget and update schedule are unchanged.
 
 **Important accuracy caveats:** RentCast's provider status is not verified against the broker's listing. A unit that is missing from a search is not necessarily rented, and if an API search reaches the 500-result cap it may disappear from the sample while still available. The website never labels missing items "rented." FirstMover is deliberately a **separate, selectable historical initial-posting feed**, not an active market inventory; its old ads remain only for historical research and are clearly labeled historical. The default source is RentCast where its latest saved data are available. The site cannot independently verify a unit was actually taken off market without an authoritative current source. No extra RentCast API requests are made for removal checks.
 
@@ -66,7 +66,7 @@ Open [Market Insights](https://michaelvriheas.github.io/nyc-apartment-finder/mar
 - **Historical trend:** a chart of only **actual saved RentCast observations**, selectable by neighborhood and studio/one-bedroom type. A single baseline is shown as one point, not an invented monthly line. Observations collected using a different search method are **never connected** as though directly comparable
 - **Data caveats:** the data covers only rentals already filtered to $2,250–$3,000, not all rental inventory; RentCast availability is provider-reported, API searches can be capped at 500 results each, and smaller neighborhood labels are approximate. FirstMover's historical initial advertisements are not included in these median series
 
-`site/data/market-history.json` begins with the **actual November 21, 2026 saved snapshot** (60 qualifying RentCast records after geographic reclassification and the GW Bridge cutoff). This was a one-region, response-limited sample, so it remains distinct from the next two-region methodology. **Each successful future RentCast refresh adds a compact, dated aggregate record** via `scripts/rent_history.py`, and the workflow commits it together with `site/data/rentcast.json`. The November 21 observation was further re-filtered to the new GW Bridge cutoff (60 matching records rather than the previous 74), without a fresh provider request. There are no fabricated months, no extra RentCast API requests for analytics, and no paid chart libraries.
+`site/data/market-history.json` begins with the **actual November 21, 2026 saved snapshot** (60 qualifying RentCast records after geographic reclassification and the GW Bridge cutoff). This was a one-region, response-limited sample, so it remains distinct from the next two-region methodology. **Each successful Monday/Thursday RentCast refresh adds a compact, dated aggregate record** via `scripts/rent_history.py`, and the workflow commits it together with `site/data/rentcast.json`. The November 21 observation was further re-filtered to the new GW Bridge cutoff (60 matching records rather than the previous 74), without a fresh provider request. There are no fabricated months, no extra RentCast API requests for analytics, and no paid chart libraries.
 
 ## Geographic search coverage and change-tracking reset
 
@@ -74,7 +74,7 @@ Previously a single 3.7-mile circular query reached the RentCast 500-result cap,
 
 The new workflow uses a southern circle centered at (40.8000, -73.9635) with a 1.85-mile radius and a northern circle centered at (40.8310, -73.9450) with a 1.65-mile radius. RentCast measures `radius` in miles. These cover the relevant portions of the compact DCP NTA polygons in `site/data/manhattan-nta-areas.geojson` SOUTH of the cutoff; records are retained only if they land within those polygons and meet all other filters. A response with 500 listings gets an explicit cap flag in the published JSON, since even two smaller searches can truncate the data.
 
-**Comparability:** Switching from a single large circle to two smaller circles changes which listings are sampled. The first successful run with the new methodology will establish a **new baseline** instead of treating removed or reclassified apartments as rented, missing or newly found. Subsequent successful weekly comparisons will show changes normally.
+**Comparability:** Switching from a single large circle to two smaller circles changes which listings are sampled. The first successful run with the new methodology will establish a **new baseline** instead of treating removed or reclassified apartments as rented, missing or newly found. Subsequent successful Monday/Thursday comparisons will show changes normally.
 
 ## George Washington Bridge northern boundary
 
@@ -82,7 +82,7 @@ The search stops at an **approximate sloped boundary along the GW Bridge's Manha
 
 The same rule lives in `scripts/areas.py` for both new RentCast and FirstMover imports, and independently in `site/index.html` as a safeguard against older cached data. The site also drops now-out-of-area comparison and favorite IDs in the same browser. `site/data/market-history.json` has been re-aggregated from the surviving **real November 21 provider snapshot**, with its original observation date retained; the count change is not a new check or a price trend. The next successful two-circle RentCast update starts a new methodology baseline so it does not count all changed-scope listings as newly discovered or rented. **No new RentCast requests** were needed for this adjustment.
 
-## Weekly listing changes
+## Listing changes between scheduled checks
 
 The website tracks two kinds of differences between successive **RentCast** snapshots:
 - **Newly seen:** a rental ID appeared in the latest sampled search but was absent from the preceding saved sample; it may have been listed earlier and missed by the API search limit.
@@ -98,10 +98,10 @@ Unit tests run offline on each deployment using mocked API responses. They do no
 
 GitHub Actions workflows:
 - Daily: fetch the newest publicly released monthly FirstMover file and redeploy the website.
-- Weekly (Mondays, UTC): run **two targeted** RentCast listing queries, persist a deduplicated filtered JSON feed, then redeploy.
+- Twice weekly (**Mondays and Thursdays, 14:07 UTC**, approximately 6:07 a.m. PST / 7:07 a.m. PDT): run **two targeted** RentCast listing queries per refresh, persist a deduplicated filtered JSON feed, then redeploy. GitHub Actions may start scheduled jobs late; if the quota guard declines a refresh, the saved snapshot stays unchanged.
 - Manual: use **Actions → Refresh data and publish site → Run workflow** for an extra RentCast refresh.
 
-**Important:** The RentCast Developer plan includes 50 free API requests per month, after which overage charges may apply. To minimize the chance of charges, `scripts/fetch_rentcast.py` implements a conservative limit of **20 attempts within any rolling 31 days** (two reserved requests per weekly refresh), tracked in the committed `.rentcast-budget.json` file. The workflow commits the quota reservation **before** making requests; if that push fails, no API request is made. This counter tracks only calls made by this project's workflow. It cannot block calls made outside this repository, and it is **not a provider-side hard spending cap**. Check the RentCast billing dashboard for your actual usage and billing period.
+**Important:** The RentCast Developer plan includes 50 free API requests per month, after which overage charges may apply. To minimize the chance of charges, `scripts/fetch_rentcast.py` implements a conservative limit of **20 attempts within any rolling 31 days** (two reserved requests per scheduled Monday/Thursday refresh), tracked in the committed `.rentcast-budget.json` file. The workflow commits the quota reservation **before** making requests; if that push fails, no API request is made. This counter tracks only calls made by this project's workflow. It cannot block calls made outside this repository, and it is **not a provider-side hard spending cap**. Check the RentCast billing dashboard for your actual usage and billing period.
 
 The key is stored only in a GitHub Actions secret called `RENTCAST_API_KEY`. Never paste it in the repository, published JSON, or screenshots.
 
@@ -113,7 +113,7 @@ The key is stored only in a GitHub Actions secret called `RENTCAST_API_KEY`. Nev
 - `scripts/update_listings.py`: FirstMover monthly historical-data importer
 - `scripts/areas.py` and `site/data/manhattan-nta-areas.geojson`: NTA polygon matching and source geometry (NYC DCP)
 - `scripts/fetch_rentcast.py`: RentCast API importer, filtering and budget reservation
-- `.github/workflows/publish.yml`: daily site deployment and weekly RentCast checks
+- `.github/workflows/publish.yml`: daily site deployment and Monday/Thursday RentCast checks
 - `site/data/rentcast.json`: last filtered RentCast response published to the public repo
 - `.rentcast-budget.json`: rolling API request reservation ledger
 
