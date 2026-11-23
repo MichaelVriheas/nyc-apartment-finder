@@ -59,11 +59,31 @@ class RentcastTrackingTests(unittest.TestCase):
         self.assertEqual(result["comparison"]["price_drop_count"],1)
         self.assertEqual(result["comparison"]["newly_found_count"],1)
         self.assertEqual(result["comparison"]["not_found_count"],1)
+        self.assertNotIn("rentcast-gone", ids)  # Prior missing units are not carried forward
         self.assertEqual(result["comparison"]["price_increase_count"],0)
         self.assertEqual(ids["rentcast-stay"]["price_change"],-200)
         self.assertEqual(ids["rentcast-stay"]["first_seen_at"],"2026-11-01T00:00:00+00:00")
         self.assertEqual(ids["rentcast-arrived"]["change_status"],"newly_seen")
         self.assertFalse(any(x["area"]=="Fort Lee" for x in ids.values()))
+
+    def test_successful_refresh_removes_missing_and_inactive_provider_listings(self):
+        """The current marketplace contains only newly sampled, Active records."""
+        first=[fixture("still-active", 2700),fixture("no-longer-returned", 2750)]
+        second=[fixture("still-active", 2700),{**fixture("now-inactive", 2800),"status":"Inactive"}]
+        with patch.object(mod, "retrieve", return_value=first) as retrieve:
+            mod.fetch()
+        self.assertEqual(retrieve.call_count,2)
+        first_ids={x["id"] for x in json.loads(mod.OUTPUT.read_text())["listings"]}
+        self.assertEqual(first_ids,{"rentcast-still-active","rentcast-no-longer-returned"})
+        with patch.object(mod, "retrieve", return_value=second) as retrieve:
+            mod.fetch()
+        self.assertEqual(retrieve.call_count,2)
+        output=json.loads(mod.OUTPUT.read_text())
+        self.assertEqual({x["id"] for x in output["listings"]},{"rentcast-still-active"})
+        self.assertEqual(output["comparison"]["not_found_count"],1)
+        self.assertIn("not rented",output["comparison"]["coverage_warning"].lower())
+        self.assertEqual(output["listings"][0]["status_at_check"],"Active")
+        self.assertTrue(all(x["status_at_check"]=="Active" for x in output["listings"]))
 
     def test_first_snapshot_is_baseline(self):
         with patch.object(mod,"retrieve",return_value=[fixture("first",2300)]):
