@@ -193,7 +193,7 @@ async function test(){
   const status=manualContent.map(n=>n.textContent).join(" ");
   assert.ok(status.includes("availability unverified"),"Manual listing must never claim verified availability");
   assert.ok(status.includes("December 23, 2026"),"Manual popup should show advertised availability date");
-  assert.ok(userPin.options.icon.options.html.includes("manual"),"Manual listings must use distinctive pin styling");
+  assert.ok(userPin.options.icon.html.includes("manual"),"Manual listings must use distinctive pin styling");
 
   // FirstMover is historical and has a real source listing URL, not an address lookup.
   get("#source").value="historical";
