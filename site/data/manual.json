@@ -32,6 +32,35 @@
       "photo_ids": [],
       "price_change": 0,
       "change_status": "manual"
+    },
+    {
+      "id": "manual-streeteasy-251-w-117th-st-2f",
+      "source_kind": "manual",
+      "source_platform": "StreetEasy",
+      "details_reference": "StreetEasy listing checked November 23, 2026",
+      "address": "251 W 117th St, New York, NY 10026",
+      "unit": "2F",
+      "area": "South Harlem",
+      "area_estimated": false,
+      "property_type": "Apartment",
+      "unit_scope": "unverified_entire_unit",
+      "rent": 2850,
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "sqft": null,
+      "latitude": 40.80469,
+      "longitude": -73.955605,
+      "listed_at": "2026-11-23",
+      "added_at": "2026-11-23",
+      "last_seen": "",
+      "status_at_check": "Listed for rent as of November 23, 2026; future availability unverified",
+      "availability_note": "Advertised for December 2026 move-in, not August 2027. Rent-stabilized according to listing; building laundry (not in-unit), dishwasher, private terrace, gym.",
+      "no_fee_at_posting": "",
+      "url": "https://streeteasy.com/building/251-west-117th-street-new_york/2f",
+      "details_reference_url": "https://streeteasy.com/building/251-west-117th-street-new_york/2f",
+      "photo_ids": [],
+      "price_change": 0,
+      "change_status": "manual"
     }
   ]
 }
