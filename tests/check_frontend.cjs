@@ -133,4 +133,18 @@ for(const key of [
 ])assert.ok(html.includes(key),"Hide/Restore feature missing: "+key);
 assert.ok(!html.includes('showSaved=false'),"Only one results-mode state should exist");
 assert.ok(!html.includes("Fort Lee"), "Removed search area must not appear");
+// The twice-weekly schedule must actually enter the guarded fetch step,
+// not just appear in cron. Regular site commits must not spend API quota.
+const workflow=fs.readFileSync(".github/workflows/publish.yml","utf8");
+const importer=fs.readFileSync("scripts/fetch_rentcast.py","utf8");
+assert.ok(workflow.includes('cron: "7 14 * * 1,4"'),"RentCast must run on Mondays and Thursdays");
+assert.ok(workflow.includes("github.event.schedule == '7 14 * * 1,4'"),
+          "Monday/Thursday cron must activate the budget-guarded RentCast step");
+assert.ok(workflow.includes('cron: "17 13 * * *"'),"Daily free FirstMover checking must continue");
+assert.ok(workflow.includes('contains(github.event.head_commit.message, \'[rentcast-test]\')'),
+          "Ordinary site commits must not trigger paid RentCast requests");
+assert.ok(importer.includes("BUDGET = 20"),"Keep the 20-call rolling budget");
+assert.ok(importer.includes("timedelta(days=31)"),"Keep the rolling 31-day budget window");
+assert.ok(importer.includes("CALLS_PER_RUN = len(SEARCHES)"),"Reserve one call per target search");
+assert.ok(importer.includes('if used + CALLS_PER_RUN > BUDGET:'),"Reject requests beyond the budget");
 console.log("Passed JS syntax and room-rental UI guard checks.");
