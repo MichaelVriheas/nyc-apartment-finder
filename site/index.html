@@ -752,11 +752,24 @@
       $("#hidden-total").textContent="("+hidden.length+")";
       $("#restore-all").hidden=viewMode!=="hidden"||hiddenIds.size===0;
       count.textContent=matching.length.toLocaleString()+(viewMode==="hidden"?" hidden apartment":viewMode==="saved"?" saved apartment":" matching listing")+(matching.length===1?"":"s")+(matching.length>150?" · showing first 150":"");
-      const rcCount=matching.filter(x=>x.source_kind==="rentcast").length;const histCount=matching.length-rcCount;
-      const labels=$("#source-counts");labels.replaceChildren();if(rcCount)labels.append(text("span","count-pill",rcCount+" RentCast"));if(histCount)labels.append(text("span","count-pill historical",histCount+" historical"));if(rcCount&&feedMetadata.rcResponseLimit)labels.append(text("span","count-pill coverage-alert","⚠ RentCast sample capped"));
+      const rcCount=matching.filter(x=>x.source_kind==="rentcast").length;
+      const manualCount=matching.filter(x=>x.source_kind==="manual").length;
+      const histCount=matching.filter(x=>x.source_kind==="historical").length;
+      const labels=$("#source-counts");
+      labels.replaceChildren();
+      if(rcCount)labels.append(text("span","count-pill",rcCount+" RentCast"));
+      if(manualCount)labels.append(text("span","count-pill manual",manualCount+" my picks"));
+      if(histCount)labels.append(text("span","count-pill historical",histCount+" historical"));
+      if(rcCount&&feedMetadata.rcResponseLimit)labels.append(text("span","count-pill coverage-alert","⚠ RentCast sample capped"));
       const rcChecked=dateOnly(feedMetadata.rcChecked),fmMonth=feedMetadata.fmMonth||"unknown";const mode=$("#source").value;
-      summary.textContent=(mode==="historical"?"FirstMover snapshot "+fmMonth+" · not live":mode==="rentcast"?"RentCast checked "+rcChecked+" · provider-reported active":"RentCast checked "+rcChecked+" · FirstMover "+fmMonth);
-      $("#source-note").textContent=mode==="historical"?"FirstMover records are historical. Listings north of the approximate GW Bridge approach are excluded; confirm the private-unit lease independently.":mode==="rentcast"?"Only listings south of the approximate GW Bridge approach are included. RentCast status is provider-reported, not guaranteed available; verify the private-unit lease.":"Sources have different freshness. Only south-of-GW-Bridge Manhattan listings appear. Neighborhood labels and private-unit status still require verification.";
+      summary.textContent=mode==="historical"?"FirstMover snapshot "+fmMonth+" · historical":
+        mode==="manual"?"My picks · personally added · verify current availability":
+        mode==="rentcast"?"RentCast checked "+rcChecked+" · my picks manually added":
+        "RentCast checked "+rcChecked+" · My picks · FirstMover "+fmMonth;
+      $("#source-note").textContent=mode==="historical"?"FirstMover records are historical. Listings north of the approximate GW Bridge approach are excluded; confirm the private-unit lease independently.":
+        mode==="manual"?"These apartments were personally selected, not rechecked automatically. Prices and availability can change; check each original listing.":
+        mode==="rentcast"?"RentCast reports active listings at last check; my picks are manually saved and may be off market. All availability and lease details require verification.":
+        "Sources have different freshness. My picks are not automatically rechecked, and FirstMover records are historical. Verify availability and private-unit leases.";
       cards.replaceChildren();
       if(!shown.length){
         const empty=text("div","empty","");
