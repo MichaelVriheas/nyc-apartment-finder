@@ -57,7 +57,7 @@
     .map-empty{display:grid;place-items:center;color:#7a8a9c;padding:25px;text-align:center}
     .results-panel{min-width:0}.results-toolbar{background:#fff;border:1px solid var(--border);box-shadow:var(--shadow);border-radius:16px;padding:14px 16px 15px;margin-bottom:15px}
     .toolbar-main{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-    .tab-group{display:inline-flex;padding:4px;background:#f3f6f9;border-radius:11px;gap:3px;border:1px solid #e9edf1}.tab{background:transparent;border:0;padding:9px 13px;border-radius:8px;font-weight:760;color:#62718a;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}.tab.active{background:var(--navy);color:white;box-shadow:0 1px 4px #0002}.tab:hover:not(.active){background:#e7eef4}
+    .tab-group{display:inline-flex;flex-wrap:wrap;padding:4px;background:#f3f6f9;border-radius:11px;gap:3px;border:1px solid #e9edf1}.tab{background:transparent;border:0;padding:9px 13px;border-radius:8px;font-weight:760;color:#62718a;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}.tab.active{background:var(--navy);color:white;box-shadow:0 1px 4px #0002}.tab:hover:not(.active){background:#e7eef4}
     .view-toggle{display:flex;align-items:center;gap:5px}.view-button{background:white;border:1px solid #dae4ee;border-radius:8px;padding:8px 9px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:670;color:#64748a}.view-button.active{color:var(--teal-dark);background:#e8f6f3;border-color:#bae3db}
     .results-overview{padding:14px 1px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
     .results-title{font-weight:840;font-size:20px;letter-spacing:-.5px;color:var(--navy)}.results-subtitle{margin:4px 0 0;color:#748297;font-size:12px}.source-counts{display:flex;gap:7px;flex-wrap:wrap}
@@ -145,6 +145,13 @@
     /* Side-by-side comparison: self-contained, responsive, no extra API calls */
     .compare-tip{font-size:12px;color:#677e90;margin:0 0 11px;padding:0 2px;line-height:1.5}
     .listing-card.is-compared{border-color:#56aaa8;box-shadow:0 3px 22px rgba(18,128,130,.16)}
+    .card-action-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:11px}
+    .card-action-row .compare-toggle{margin-top:0}
+    .hide-listing-btn,.restore-all-btn{border:1px solid #d4dfe8;background:#fff;color:#566a7d;border-radius:8px;padding:7px 10px;font:inherit;font-size:11px;font-weight:780;cursor:pointer}
+    .hide-listing-btn:hover,.restore-all-btn:hover{background:#eef4f7;border-color:#a7c0ce;color:#193e58}
+    .hide-listing-btn.is-restore{color:#126d69;border-color:#b8dbd6;background:#eff9f7}
+    .restore-all-btn[hidden]{display:none!important}
+    .restore-all-btn{margin-left:2px}
     .compare-toggle{display:inline-flex;align-items:center;justify-content:center;gap:5px;margin-top:11px;padding:7px 11px;border:1px solid #c5d9de;border-radius:8px;background:#f3f9fa;color:#176976;font:inherit;font-weight:780;font-size:11px;cursor:pointer}
     .compare-toggle:hover:not(:disabled){border-color:#318b8b;background:#e3f4f1}
     .compare-toggle.is-selected{background:#d5f1e9;border-color:#8cd6c5;color:#076957}
@@ -237,7 +244,7 @@
     <div class="workspace" id="workspace">
       <aside class="map-panel" aria-label="Apartment locations"><div class="map-title"><span class="panel-heading">Explore the map</span><span class="map-caption">Columbia · South of GW Bridge</span></div><div id="map" role="region" aria-label="Interactive rental listing map"></div><div class="map-footer"><span><i class="legend-dot school"></i> Columbia campus</span><span><i class="legend-dot"></i> RentCast</span><span><i class="legend-dot historic"></i> Historical</span><span class="map-hint">Hover over a pin for apartment details and links · Tap or click to keep the preview open</span></div></aside>
       <section class="results-panel" id="results" aria-label="Search results">
-        <div class="results-toolbar"><div class="toolbar-main"><div class="tab-group" role="group" aria-label="Listing selection"><button type="button" class="tab active" id="all" aria-pressed="true">All listings <span id="all-total">(0)</span></button><button type="button" class="tab" id="saved" aria-pressed="false">♡ Saved <span id="saved-total">(0)</span></button></div><div class="view-toggle" role="group" aria-label="Display mode"><button type="button" class="view-button active" id="split-view" aria-label="Show map and listing cards" aria-pressed="true"><svg><use href="#i-map"/></svg> Map + cards</button><button type="button" class="view-button" id="list-view" aria-label="Show listing cards only" aria-pressed="false"><svg><use href="#i-list"/></svg> Cards only</button></div></div><div class="results-overview"><div><div class="results-title" id="count" role="status">Loading apartments…</div><p class="results-subtitle" id="snapshot">Fetching the latest stored datasets.</p></div><div class="source-counts" id="source-counts"></div></div></div>
+        <div class="results-toolbar"><div class="toolbar-main"><div class="tab-group" role="group" aria-label="Listing selection"><button type="button" class="tab active" id="all" aria-pressed="true">All listings <span id="all-total">(0)</span></button><button type="button" class="tab" id="saved" aria-pressed="false">♡ Saved <span id="saved-total">(0)</span></button><button type="button" class="tab" id="hidden-listings" aria-pressed="false">Hidden <span id="hidden-total">(0)</span></button></div><button type="button" class="restore-all-btn" id="restore-all" hidden>Restore all hidden</button><div class="view-toggle" role="group" aria-label="Display mode"><button type="button" class="view-button active" id="split-view" aria-label="Show map and listing cards" aria-pressed="true"><svg><use href="#i-map"/></svg> Map + cards</button><button type="button" class="view-button" id="list-view" aria-label="Show listing cards only" aria-pressed="false"><svg><use href="#i-list"/></svg> Cards only</button></div></div><div class="results-overview"><div><div class="results-title" id="count" role="status">Loading apartments…</div><p class="results-subtitle" id="snapshot">Fetching the latest stored datasets.</p></div><div class="source-counts" id="source-counts"></div></div></div>
         <div class="change-panel" id="changes-panel" aria-label="Changes in the last RentCast snapshot">
           <div><div class="change-panel-title">Changes since the previous RentCast check</div><div class="change-panel-text" id="change-date">Setting up comparison tracking from the first snapshot.</div></div>
           <div class="change-stats" aria-label="Filter recent changes">
@@ -285,7 +292,7 @@
     const $=s=>document.querySelector(s);
     const cards=$("#cards"), count=$("#count"), summary=$("#snapshot"), workspace=$("#workspace");
     for (const area of AREAS) {const o=document.createElement("option");o.value=o.textContent=area;$("#area").append(o);}
-    let listings=[],historical=[],rentcast=[],showSaved=false,map=null,markers=null,markerIndex=new Map(),feedMetadata={},approvedPhotos={},changeMode="all";
+    let listings=[],historical=[],rentcast=[],viewMode="all",map=null,markers=null,markerIndex=new Map(),feedMetadata={},approvedPhotos={},changeMode="all";
     // Store comparison choices by listing ID in this browser, not a cached copy
     // of prices, so refreshed listings always show current saved feed values.
     const compareStorageKey="nyc-apartment-comparison-v1";
@@ -294,6 +301,14 @@
       const savedIds=JSON.parse(localStorage.getItem(compareStorageKey)||"[]");
       if(Array.isArray(savedIds))compareIds=[...new Set(savedIds.filter(x=>typeof x==="string"&&x.length>0))].slice(0,3);
     }catch(e){console.warn("Previous comparison selections unavailable",e);}
+    // Personal exclusions persist across reloads and new provider snapshots.
+    // They are never sent to RentCast or shared with other devices.
+    const hiddenStorageKey="nyc-apartment-hidden-v1";
+    let hiddenIds=new Set();
+    try{
+      const saved=JSON.parse(localStorage.getItem(hiddenStorageKey)||"[]");
+      if(Array.isArray(saved))hiddenIds=new Set(saved.filter(v=>typeof v==="string"&&v.length>0&&v.length<500));
+    }catch(e){console.warn("Hidden apartments unavailable",e);}
     let favorites=new Set();
     try{const stored=JSON.parse(localStorage.getItem("nyc-apartment-favorites")||"[]");if(Array.isArray(stored))favorites=new Set(stored.map(String));}catch(e){console.warn("Favorites unavailable",e);}
     const svg=(name,cls="")=>{const el=document.createElementNS("http://www.w3.org/2000/svg","svg");if(cls)el.setAttribute("class",cls);el.setAttribute("aria-hidden","true");const use=document.createElementNS("http://www.w3.org/2000/svg","use");use.setAttribute("href","#i-"+name);el.append(use);return el;};
@@ -330,7 +345,43 @@
     }
     addPinMap();
     function saveFavorite(id){const key=String(id);if(favorites.has(key))favorites.delete(key);else favorites.add(key);try{localStorage.setItem("nyc-apartment-favorites",JSON.stringify([...favorites]));}catch(e){console.warn("Could not save favorite",e);}render();}
-    function setSavedMode(saved){showSaved=saved;$("#all").classList.toggle("active",!saved);$("#saved").classList.toggle("active",saved);$("#all").setAttribute("aria-pressed",String(!saved));$("#saved").setAttribute("aria-pressed",String(saved));render();}
+    function setResultsMode(mode){
+      viewMode=["all","saved","hidden"].includes(mode)?mode:"all";
+      for(const [id,name] of [["all","all"],["saved","saved"],["hidden-listings","hidden"]]){
+        const button=$("#"+id);
+        button.classList.toggle("active",viewMode===name);
+        button.setAttribute("aria-pressed",String(viewMode===name));
+      }
+      render();
+    }
+    function setSavedMode(saved){setResultsMode(saved?"saved":"all");}
+    function toggleHide(id){
+      const key=String(id);
+      if(!listings.some(x=>String(x.id)===key))return;
+      if(hiddenIds.has(key))hiddenIds.delete(key);
+      else{
+        hiddenIds.add(key);
+        // A personally excluded listing should not remain in comparisons.
+        if(compareIds.includes(key)){
+          compareIds=compareIds.filter(x=>x!==key);
+          persistCompare();
+          const dialog=$("#compare-dialog");
+          if(dialog.open&&comparedListings().length<2){
+            if(typeof dialog.close==="function")dialog.close();
+            else dialog.removeAttribute("open");
+          }
+        }
+      }
+      try{localStorage.setItem(hiddenStorageKey,JSON.stringify([...hiddenIds]));}
+      catch(e){console.warn("Unable to save hidden apartments",e);}
+      render();
+    }
+    function restoreAllHidden(){
+      hiddenIds.clear();
+      try{localStorage.setItem(hiddenStorageKey,"[]");}
+      catch(e){console.warn("Unable to restore all hidden apartments",e);}
+      setResultsMode("all");
+    }
     function setListOnly(only){workspace.classList.toggle("list-only",only);$("#list-view").classList.toggle("active",only);$("#split-view").classList.toggle("active",!only);$("#list-view").setAttribute("aria-pressed",String(only));$("#split-view").setAttribute("aria-pressed",String(!only));if(!only&&map)setTimeout(()=>map.invalidateSize(),10);}
     const clampRent=(v,fallback)=>Math.min(3000,Math.max(2250,Math.round(Number(v)||fallback)));
     function normalizeRentFields(changed){
@@ -529,7 +580,15 @@
       compareButton.dataset.compareAddress=String(x.address||"apartment");
       compareButton.addEventListener("click",()=>toggleCompare(x.id));
       compareButton.setAttribute("aria-label","Add "+(x.address||"apartment")+" to comparison");
-      body.append(compareButton);
+      const actionRow=text("div","card-action-row","");
+      actionRow.append(compareButton);
+      const isHidden=hiddenIds.has(String(x.id));
+      const hideButton=text("button","hide-listing-btn"+(isHidden?" is-restore":""),isHidden?"↩ Restore apartment":"Hide apartment");
+      hideButton.type="button";
+      hideButton.setAttribute("aria-label",(isHidden?"Restore ":"Hide ")+(x.address||"this apartment")+(isHidden?" in marketplace":" from marketplace"));
+      hideButton.addEventListener("click",()=>toggleHide(x.id));
+      actionRow.append(hideButton);
+      body.append(actionRow);
       body.append(text("small","unit-disclaimer","Room shares excluded when identified · Entire-unit status and private kitchen/bath not independently verified"));
       const startPoint=Number.isFinite(Number(x.latitude))&&Number.isFinite(Number(x.longitude))&&x.latitude!=null&&x.longitude!=null
         ? String(x.latitude)+","+String(x.longitude) : String(x.address||"");
@@ -593,6 +652,12 @@
       openCard.setAttribute("aria-label","Scroll to the apartment card for "+(x.address||"this listing"));
       openCard.addEventListener("click",()=>focusListingFromMap(x.id));
       actions.append(openCard);
+      const mapHidden=hiddenIds.has(String(x.id));
+      const hideMap=text("button","map-preview-card-btn",mapHidden?"↩ Restore":"Hide apartment");
+      hideMap.type="button";
+      hideMap.setAttribute("aria-label",(mapHidden?"Restore ":"Hide ")+(x.address||"this apartment")+(mapHidden?" in marketplace":" from marketplace"));
+      hideMap.addEventListener("click",()=>toggleHide(x.id));
+      actions.append(hideMap);
       // RentCast does not supply the original ad URL; its saved URL is an
       // address web search, unlike FirstMover's original StreetEasy ad.
       const url=safeUrl(x.url);
@@ -660,7 +725,11 @@
     function render(){
       const allBase=listForView();
       const all=changeMode==="all"?allBase:allBase.filter(x=>x.source_kind==="rentcast"&&x.change_status===changeMode);
-      const saved=all.filter(x=>favorites.has(String(x.id))),matching=showSaved?saved:all;const shown=matching.slice(0,150);
+      const visible=all.filter(x=>!hiddenIds.has(String(x.id)));
+      const saved=visible.filter(x=>favorites.has(String(x.id)));
+      const hidden=all.filter(x=>hiddenIds.has(String(x.id)));
+      const matching=viewMode==="hidden"?hidden:viewMode==="saved"?saved:visible;
+      const shown=matching.slice(0,150);
       const comparison=feedMetadata.comparison;
       const isBaseline=!comparison||comparison.baseline;
       $("#new-count").textContent=isBaseline?"—":String(comparison.newly_found_count??0);
@@ -671,14 +740,34 @@
       for(const [id,kind] of [["change-all","all"],["change-new","newly_seen"],["change-drops","price_drop"]]){
         const button=$("#"+id);button.disabled=isBaseline&&kind!=="all";button.classList.toggle("active",changeMode===kind);button.setAttribute("aria-pressed",String(changeMode===kind));
       }
-      $("#fav-total").textContent=String(favorites.size);$("#all-total").textContent="("+all.length+")";$("#saved-total").textContent="("+saved.length+")";
-      count.textContent=matching.length.toLocaleString()+" matching listing"+(matching.length===1?"":"s")+(matching.length>150?" · showing first 150":"");
+      $("#fav-total").textContent=String([...favorites].filter(id=>!hiddenIds.has(id)).length);
+      $("#all-total").textContent="("+visible.length+")";
+      $("#saved-total").textContent="("+saved.length+")";
+      $("#hidden-total").textContent="("+hidden.length+")";
+      $("#restore-all").hidden=viewMode!=="hidden"||hiddenIds.size===0;
+      count.textContent=matching.length.toLocaleString()+(viewMode==="hidden"?" hidden apartment":viewMode==="saved"?" saved apartment":" matching listing")+(matching.length===1?"":"s")+(matching.length>150?" · showing first 150":"");
       const rcCount=matching.filter(x=>x.source_kind==="rentcast").length;const histCount=matching.length-rcCount;
       const labels=$("#source-counts");labels.replaceChildren();if(rcCount)labels.append(text("span","count-pill",rcCount+" RentCast"));if(histCount)labels.append(text("span","count-pill historical",histCount+" historical"));if(rcCount&&feedMetadata.rcResponseLimit)labels.append(text("span","count-pill coverage-alert","⚠ RentCast sample capped"));
       const rcChecked=dateOnly(feedMetadata.rcChecked),fmMonth=feedMetadata.fmMonth||"unknown";const mode=$("#source").value;
       summary.textContent=(mode==="historical"?"FirstMover snapshot "+fmMonth+" · not live":mode==="rentcast"?"RentCast checked "+rcChecked+" · provider-reported active":"RentCast checked "+rcChecked+" · FirstMover "+fmMonth);
       $("#source-note").textContent=mode==="historical"?"FirstMover records are historical. Listings north of the approximate GW Bridge approach are excluded; confirm the private-unit lease independently.":mode==="rentcast"?"Only listings south of the approximate GW Bridge approach are included. RentCast status is provider-reported, not guaranteed available; verify the private-unit lease.":"Sources have different freshness. Only south-of-GW-Bridge Manhattan listings appear. Neighborhood labels and private-unit status still require verification.";
-      cards.replaceChildren();if(!shown.length){const empty=text("div","empty","");empty.append(text("strong","",showSaved?"No saved apartments match these filters":"No matching listings"),text("div","",showSaved?"Save an apartment with the heart icon or loosen your filters.":"Try another neighborhood, apartment type, or listing source."));cards.append(empty);}else{const frag=document.createDocumentFragment();shown.forEach((x,i)=>frag.append(listingCard(x,i)));cards.append(frag);}refreshPins(shown);updateComparisonUI();
+      cards.replaceChildren();
+      if(!shown.length){
+        const empty=text("div","empty","");
+        const emptyTitle=viewMode==="hidden"?"No hidden apartments match these filters":
+          viewMode==="saved"?"No saved apartments match these filters":"No matching listings";
+        const emptyHelp=viewMode==="hidden"?"Hidden apartments that are still in the selected feed appear here. Change source or filters to locate one, then restore it. Your hidden choices remain saved even if a listing temporarily disappears from a refresh.":
+          viewMode==="saved"?"Save an apartment with the heart icon or loosen your filters.":
+          hidden.length?"Some apartments are hidden. Open the Hidden tab to restore them.":"Try another neighborhood, apartment type, or listing source.";
+        empty.append(text("strong","",emptyTitle),text("div","",emptyHelp));
+        cards.append(empty);
+      }else{
+        const frag=document.createDocumentFragment();
+        shown.forEach((x,i)=>frag.append(listingCard(x,i)));
+        cards.append(frag);
+      }
+      refreshPins(shown);
+      updateComparisonUI();
     }
     for(const id of ["source","area","beds","sort"])$("#"+id).addEventListener("change",render);
     $("#minRent").addEventListener("change",()=>{normalizeRentFields("min");render();});
@@ -688,7 +777,10 @@
     for(const [id,kind] of [["change-all","all"],["change-new","newly_seen"],["change-drops","price_drop"]]){
       $("#"+id).addEventListener("click",()=>{changeMode=kind;render();});
     }
-    $("#all").addEventListener("click",()=>setSavedMode(false));$("#saved").addEventListener("click",()=>setSavedMode(true));
+    $("#all").addEventListener("click",()=>setResultsMode("all"));
+    $("#saved").addEventListener("click",()=>setResultsMode("saved"));
+    $("#hidden-listings").addEventListener("click",()=>setResultsMode("hidden"));
+    $("#restore-all").addEventListener("click",restoreAllHidden);
     $("#header-favorites").addEventListener("click",()=>setSavedMode(true));
     $("#split-view").addEventListener("click",()=>setListOnly(false));$("#list-view").addEventListener("click",()=>setListOnly(true));
 
@@ -709,7 +801,7 @@
       rentcast=Array.isArray(r?.listings)?r.listings.filter(southOfGWBridge).map(x=>({...x,source_kind:"rentcast"})):[];
       listings=[...rentcast,...historical];
       const allowedIds=new Set(listings.filter(x=>southOfGWBridge(x)&&!roomRental(x)&&Number(x.rent)>=2250&&Number(x.rent)<=3000).map(x=>String(x.id)));
-      const validCompare=compareIds.filter(id=>allowedIds.has(id));
+      const validCompare=compareIds.filter(id=>allowedIds.has(id)&&!hiddenIds.has(id));
       if(validCompare.length!==compareIds.length){compareIds=validCompare;persistCompare();}
       const allowedFavorites=[...favorites].filter(id=>allowedIds.has(id));
       if(allowedFavorites.length!==favorites.size){favorites=new Set(allowedFavorites);try{localStorage.setItem("nyc-apartment-favorites",JSON.stringify([...favorites]));}catch(e){console.warn("Unable to prune out-of-area favorites",e);}}
