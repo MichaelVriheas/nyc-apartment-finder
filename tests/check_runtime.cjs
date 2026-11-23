@@ -111,7 +111,7 @@ function descendants(node){
   const state=await loadPage([firstId]);
   const firstCard=state.elements.get("cards").children[0].children.find(n=>n.className==="listing-card");
   assert.ok(firstCard,"Expected first visible apartment card");
-  const hide=descendants(firstCard).find(n=>n.className.split(/\\s+/).includes("hide-listing-btn"));
+  const hide=descendants(firstCard).find(n=>n.className.split(/\s+/).includes("hide-listing-btn"));
   assert.ok(hide?.events.click?.[0],"Each listing needs a working Hide apartment control");
   const hiddenId=firstCard.dataset.listingId;
   hide.events.click[0]();
@@ -121,7 +121,7 @@ function descendants(node){
   state.elements.get("hidden-listings").events.click[0]();
   assert.equal(state.elements.get("count").textContent,"1 hidden apartment","Hidden view should allow a user to find the excluded apartment");
   const hiddenCard=state.elements.get("cards").children[0].children.find(n=>n.className==="listing-card");
-  const restore=descendants(hiddenCard).find(n=>n.className.split(/\\s+/).includes("hide-listing-btn"));
+  const restore=descendants(hiddenCard).find(n=>n.className.split(/\s+/).includes("hide-listing-btn"));
   assert.ok(restore?.textContent.includes("Restore"),"Hidden apartments need a Restore action");
   restore.events.click[0]();
   assert.equal(JSON.parse(state.store.get("nyc-apartment-hidden-v1")).length,0,"Restoring should clear the personal exclusion");
