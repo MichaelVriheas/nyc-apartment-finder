@@ -53,7 +53,7 @@
     .panel-heading{font-weight:800;font-size:15px;color:var(--navy)}.map-caption{color:#778698;font-size:11px}
     #map{height:min(68vh,725px);min-height:520px;background:linear-gradient(145deg,#eaf3f7,#eef1f3)}
     .map-footer{padding:12px 15px;display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:#657589;line-height:1.25;align-items:center}
-    .legend-dot{height:9px;width:9px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;background:var(--teal)}.legend-dot.historic{background:#7f90a3}.legend-dot.school{background:var(--navy)}
+    .legend-dot{height:9px;width:9px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;background:var(--teal)}.legend-dot.historic{background:#7f90a3}.legend-dot.manual{background:#8b57b8}.legend-dot.school{background:var(--navy)}
     .map-empty{display:grid;place-items:center;color:#7a8a9c;padding:25px;text-align:center}
     .results-panel{min-width:0}.results-toolbar{background:#fff;border:1px solid var(--border);box-shadow:var(--shadow);border-radius:16px;padding:14px 16px 15px;margin-bottom:15px}
     .toolbar-main{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
@@ -61,7 +61,7 @@
     .view-toggle{display:flex;align-items:center;gap:5px}.view-button{background:white;border:1px solid #dae4ee;border-radius:8px;padding:8px 9px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:670;color:#64748a}.view-button.active{color:var(--teal-dark);background:#e8f6f3;border-color:#bae3db}
     .results-overview{padding:14px 1px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
     .results-title{font-weight:840;font-size:20px;letter-spacing:-.5px;color:var(--navy)}.results-subtitle{margin:4px 0 0;color:#748297;font-size:12px}.source-counts{display:flex;gap:7px;flex-wrap:wrap}
-    .count-pill{display:inline-block;font-size:11px;padding:5px 9px;border-radius:8px;background:#e9f5f1;color:#126d65;font-weight:700}.count-pill.historical{background:#eff2f6;color:#66768c}.count-pill.coverage-alert{background:#fff4df;color:#92611b}
+    .count-pill{display:inline-block;font-size:11px;padding:5px 9px;border-radius:8px;background:#e9f5f1;color:#126d65;font-weight:700}.count-pill.historical{background:#eff2f6;color:#66768c}.count-pill.manual{background:#f2eafa;color:#70439b}.count-pill.coverage-alert{background:#fff4df;color:#92611b}
     .change-panel{background:#fff;border:1px solid var(--border);border-radius:15px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:15px;display:flex;justify-content:space-between;align-items:center;gap:13px;flex-wrap:wrap}
     .change-panel-title{font-weight:800;color:var(--navy);font-size:14px}
     .change-panel-text{font-size:11px;color:var(--muted);margin-top:4px;max-width:520px}
@@ -87,10 +87,10 @@
     .scene-2 .building-b{height:91px}.scene-3 .building-a{height:90px}.scene-4 .building-c{height:108px}
     .visual-shade{position:absolute;inset:0;background:linear-gradient(0deg,rgba(19,43,73,.24),transparent 60%);pointer-events:none}
     .visual-badges{position:absolute;left:11px;top:10px;display:flex;flex-wrap:wrap;gap:6px;z-index:2;max-width:calc(100% - 65px)}
-    .status-badge,.source-badge{display:inline-flex;align-items:center;padding:5px 8px;border-radius:100px;font-weight:800;font-size:10px;line-height:1.3;background:#edf9f3;color:#14634e;box-shadow:0 1px 5px #0001}.status-badge.historical{background:#fff;color:#677588}.source-badge{background:#fff;color:#345573}
+    .status-badge,.source-badge{display:inline-flex;align-items:center;padding:5px 8px;border-radius:100px;font-weight:800;font-size:10px;line-height:1.3;background:#edf9f3;color:#14634e;box-shadow:0 1px 5px #0001}.status-badge.historical{background:#fff;color:#677588}.status-badge.manual{background:#f5edfd;color:#7142a6}.source-badge{background:#fff;color:#345573}
     .save-btn{position:absolute;right:10px;top:9px;z-index:2;background:#fffc;border:1px solid #fff;border-radius:100%;height:32px;width:32px;display:grid;place-items:center;color:#365068;font-size:23px;line-height:1}.save-btn.saved{color:#c3475f}.save-btn:hover{background:#fff}
     .visual-note{position:absolute;right:10px;bottom:9px;color:#fff;font-size:10px;font-weight:700;background:#17334980;padding:4px 7px;border-radius:7px;z-index:2}
-    .card-body{padding:15px}
+    .card-body{padding:15px}.manual-availability{font-size:11px;color:#674494;background:#f7f1fc;border:1px solid #eadbf8;border-radius:8px;padding:8px 10px;margin-top:9px;line-height:1.45}
     .price-row{display:flex;align-items:center;justify-content:space-between;gap:8px}.rent-price{font-size:23px;font-weight:840;letter-spacing:-.75px;color:var(--navy);white-space:nowrap}.rent-price small{color:#67788d;font-size:12px;letter-spacing:0;font-weight:620}
     .beds-badge{font-size:11px;color:#315272;font-weight:750;background:#eaf2f9;border-radius:7px;padding:4px 9px;white-space:nowrap}
     .card-address{font-weight:730;color:#2c3e56;line-height:1.32;margin:10px 0 7px;min-height:36px;overflow-wrap:anywhere}.area-tag{display:inline-block;font-weight:700;font-size:11px;color:#286178;background:#e8f2f7;padding:3px 9px;border-radius:100px;max-width:100%;overflow-wrap:anywhere}
@@ -119,6 +119,7 @@
        Links remain clickable as the pointer leaves the pin and enters the popup. */
     .map-price-marker{width:17px;height:17px;border-radius:50%;box-shadow:0 1px 6px #162a4380;transition:transform .12s ease}
     .map-price-marker.historic{background:#8996a6}
+    .map-price-marker.manual{background:#8b57b8}
     .map-listing-popup .leaflet-popup-content-wrapper{border-radius:13px;box-shadow:0 5px 25px rgba(8,35,62,.23)}
     .map-listing-popup .leaflet-popup-content{margin:13px 16px 14px;min-width:205px;max-width:270px}
     .map-preview{display:grid;gap:5px;font-size:12px;line-height:1.4;color:#38516a}
@@ -242,7 +243,7 @@
     </section>
     <div class="under-filter"><div class="disclaimer"><svg><use href="#i-alert"/></svg><span id="source-note">Showing studios and one-bedrooms SOUTH of the GW Bridge, with identifiable room shares removed. Verify private kitchen, bath, lease and availability.</span></div><button class="reset-btn" id="reset" type="button">Reset filters</button></div>
     <div class="workspace" id="workspace">
-      <aside class="map-panel" aria-label="Apartment locations"><div class="map-title"><span class="panel-heading">Explore the map</span><span class="map-caption">Columbia · South of GW Bridge</span></div><div id="map" role="region" aria-label="Interactive rental listing map"></div><div class="map-footer"><span><i class="legend-dot school"></i> Columbia campus</span><span><i class="legend-dot"></i> RentCast</span><span><i class="legend-dot historic"></i> Historical</span><span class="map-hint">Hover over a pin for apartment details and links · Tap or click to keep the preview open</span></div></aside>
+      <aside class="map-panel" aria-label="Apartment locations"><div class="map-title"><span class="panel-heading">Explore the map</span><span class="map-caption">Columbia · South of GW Bridge</span></div><div id="map" role="region" aria-label="Interactive rental listing map"></div><div class="map-footer"><span><i class="legend-dot school"></i> Columbia campus</span><span><i class="legend-dot"></i> RentCast</span><span><i class="legend-dot historic"></i> Historical</span><span><i class="legend-dot manual"></i> My picks</span><span class="map-hint">Hover over a pin for apartment details and links · Tap or click to keep the preview open</span></div></aside>
       <section class="results-panel" id="results" aria-label="Search results">
         <div class="results-toolbar"><div class="toolbar-main"><div class="tab-group" role="group" aria-label="Listing selection"><button type="button" class="tab active" id="all" aria-pressed="true">All listings <span id="all-total">(0)</span></button><button type="button" class="tab" id="saved" aria-pressed="false">♡ Saved <span id="saved-total">(0)</span></button><button type="button" class="tab" id="hidden-listings" aria-pressed="false">Hidden <span id="hidden-total">(0)</span></button></div><button type="button" class="restore-all-btn" id="restore-all" hidden>Restore all hidden</button><div class="view-toggle" role="group" aria-label="Display mode"><button type="button" class="view-button active" id="split-view" aria-label="Show map and listing cards" aria-pressed="true"><svg><use href="#i-map"/></svg> Map + cards</button><button type="button" class="view-button" id="list-view" aria-label="Show listing cards only" aria-pressed="false"><svg><use href="#i-list"/></svg> Cards only</button></div></div><div class="results-overview"><div><div class="results-title" id="count" role="status">Loading apartments…</div><p class="results-subtitle" id="snapshot">Fetching the latest stored datasets.</p></div><div class="source-counts" id="source-counts"></div></div></div>
         <div class="change-panel" id="changes-panel" aria-label="Changes in the last RentCast snapshot">
