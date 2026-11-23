@@ -88,7 +88,7 @@ for(const key of ['function buildMapPreview(x)','function focusListingFromMap(id
   'marker.on("popupopen"','marker.on("popupclose"',
   'map-listing-popup','map-preview-actions','map-preview-link',
   'View apartment card','Original listing ↗','Search address ↗',
-  'x.source_kind==="historical"?"Original listing ↗":"Search address ↗"',
+  'x.source_kind==="rentcast"?"Search address ↗":"Original listing ↗"',
   'marker.getPopup()?.getElement()','cancelMapPreviewClose()',
   'card.dataset.listingId=String(x.id)','keyboard:true',
   'Hover over a pin for apartment details']){
@@ -147,4 +147,26 @@ assert.ok(importer.includes("BUDGET = 20"),"Keep the 20-call rolling budget");
 assert.ok(importer.includes("timedelta(days=31)"),"Keep the rolling 31-day budget window");
 assert.ok(importer.includes("CALLS_PER_RUN = len(SEARCHES)"),"Reserve one call per target search");
 assert.ok(importer.includes('if used + CALLS_PER_RUN > BUDGET:'),"Reject requests beyond the budget");
+// Permanent manual listings are a separate source from the two auto-refresh
+// feeds. Default marketplace includes My Picks while historical remains opt-in.
+const manual=JSON.parse(fs.readFileSync("site/data/manual.json","utf8"));
+assert.ok(Array.isArray(manual.listings)&&manual.listings.length>0,"Manual listing JSON must contain at least one item");
+for(const item of manual.listings){
+  assert.ok(/^manual-[a-z0-9-]+$/.test(item.id),"Manual ID should be stable for local favorites and hidden status");
+  assert.equal(item.source_kind,"manual");
+  assert.ok(["Studio","One bedroom"].includes(Number(item.bedrooms)===0?"Studio":Number(item.bedrooms)===1?"One bedroom":"invalid"));
+  assert.ok(Number(item.rent)>=2250&&Number(item.rent)<=3000,"My picks must be within rent criteria");
+  assert.ok(typeof item.latitude==="number"&&typeof item.longitude==="number","My picks must plot on the map");
+  assert.ok(item.area==="South Harlem"||item.area==="Central Harlem"||item.area==="Hamilton Heights"||item.area==="Morningside Heights"||item.area==="Manhattan Valley"||item.area==="Manhattanville"||item.area==="Northern Upper West Side"||item.area==="Washington Heights","My picks must be within target areas");
+  assert.ok(item.url.startsWith("https://streeteasy.com/"),"Manual source must link directly to the user's original apartment listing");
+}
+assert.equal(manual.listings.find(x=>x.unit==="1S")?.rent,2550,"User's selected unit 1S should retain its own asking rent");
+for(const code of ['value="manual"','getJSON("./data/manual.json")','let listings=[],historical=[],rentcast=[],manual=[]',
+  'manual=Array.isArray(m?.listings)','listings=[...rentcast,...manual,...historical]',
+  '(s==="rentcast"&&(x.source_kind==="rentcast"||x.source_kind==="manual"))',
+  'x.source_kind==="manual"?"My pick"','My picks · manually saved',
+  'x.source_kind==="manual"?" manual"','map-price-marker.manual',
+  'x.source_kind==="manual"?"My pick · manually selected, availability unverified"']){
+  assert.ok(html.includes(code),"Manual My Picks feature missing: "+code);
+}
 console.log("Passed JS syntax and room-rental UI guard checks.");
