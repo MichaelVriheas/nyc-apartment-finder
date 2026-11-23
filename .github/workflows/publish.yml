@@ -6,7 +6,7 @@ on:
     branches: [main]
   schedule:
     - cron: "17 13 * * *" # Check free monthly FirstMover data daily
-    - cron: "7 14 * * 1"  # Check RentCast once per week (two reserved API requests)
+    - cron: "7 14 * * 1,4"  # RentCast Mondays + Thursdays, two reserved API requests per refresh
 
 permissions:
   contents: write
@@ -43,7 +43,7 @@ jobs:
         run: node tests/check_map.cjs
 
       - name: Reserve budget, fetch RentCast, and persist results
-        if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '7 14 * * 1' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[rentcast-test]')) }}
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '7 14 * * 1,4' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[rentcast-test]')) }}
         env:
           RENTCAST_API_KEY: ${{ secrets.RENTCAST_API_KEY }}
         run: |
