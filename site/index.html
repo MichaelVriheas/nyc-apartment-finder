@@ -231,7 +231,7 @@
     <section class="filter-panel" id="filters" aria-label="Search filters">
       <div class="filter-title"><div class="filter-heading"><svg><use href="#i-sliders"/></svg> Refine your search</div><span class="filter-meta">Automatic source updates · August 2027 move goal</span></div>
       <div class="filter-grid">
-        <div class="field"><label for="source">Listing source</label><select id="source"><option value="rentcast">RentCast · recently checked</option><option value="historical">FirstMover · historical</option><option value="both">Both data sources</option></select></div>
+        <div class="field"><label for="source">Listing source</label><select id="source"><option value="rentcast">RentCast + my picks</option><option value="manual">My picks only</option><option value="historical">FirstMover · historical</option><option value="both">All sources</option></select></div>
         <div class="field"><label for="area">Neighborhood</label><select id="area"><option value="">All 8 areas</option></select></div>
         <div class="field"><label for="minRent">Min base rent ($)</label><input id="minRent" type="number" min="2250" max="3000" step="50" value="2250" inputmode="numeric"></div>
         <div class="field"><label for="rent">Max base rent ($)</label><input id="rent" type="number" min="2250" max="3000" step="50" value="3000" inputmode="numeric"></div>
@@ -292,7 +292,7 @@
     const $=s=>document.querySelector(s);
     const cards=$("#cards"), count=$("#count"), summary=$("#snapshot"), workspace=$("#workspace");
     for (const area of AREAS) {const o=document.createElement("option");o.value=o.textContent=area;$("#area").append(o);}
-    let listings=[],historical=[],rentcast=[],viewMode="all",map=null,markers=null,markerIndex=new Map(),feedMetadata={},approvedPhotos={},changeMode="all";
+    let listings=[],historical=[],rentcast=[],manual=[],viewMode="all",map=null,markers=null,markerIndex=new Map(),feedMetadata={},approvedPhotos={},changeMode="all";
     // Store comparison choices by listing ID in this browser, not a cached copy
     // of prices, so refreshed listings always show current saved feed values.
     const compareStorageKey="nyc-apartment-comparison-v1";
@@ -391,7 +391,7 @@
     }
     function filtersMatch(x){
       const s=$("#source").value,b=$("#beds").value,a=$("#area").value,minimum=clampRent($("#minRent").value,2250),cap=clampRent($("#rent").value,3000);
-      return southOfGWBridge(x)&&!roomRental(x)&&(s==="both"||x.source_kind===s)&&Number(x.rent)>=minimum&&Number(x.rent)<=cap&&(!a||x.area===a)&&(b==="all"||Number(x.bedrooms)===Number(b));
+      return southOfGWBridge(x)&&!roomRental(x)&&(s==="both"||(s==="rentcast"&&(x.source_kind==="rentcast"||x.source_kind==="manual"))||x.source_kind===s)&&Number(x.rent)>=minimum&&Number(x.rent)<=cap&&(!a||x.area===a)&&(b==="all"||Number(x.bedrooms)===Number(b));
     }
     function listForView(){const sort=$("#sort").value;let data=listings.filter(filtersMatch);data.sort((a,b)=>sort==="low"?Number(a.rent)-Number(b.rent):sort==="high"?Number(b.rent)-Number(a.rent):sort==="size"?Number(b.sqft||0)-Number(a.sqft||0):sort==="campus"?campusDistance(a)-campusDistance(b):freshDate(b).localeCompare(freshDate(a)));return data;}
     function showMarker(id){const found=markerIndex.get(String(id));if(!map||!found)return;setListOnly(false);setTimeout(()=>{map.invalidateSize();map.setView(found.getLatLng(),Math.max(map.getZoom(),15),{animate:true});found.openPopup();if(window.matchMedia("(max-width:760px)").matches)$("#map").scrollIntoView({behavior:"smooth",block:"center"});},25);}
@@ -773,7 +773,7 @@
     $("#minRent").addEventListener("change",()=>{normalizeRentFields("min");render();});
     $("#rent").addEventListener("change",()=>{normalizeRentFields("max");render();});
     $("#apply").addEventListener("click",()=>{normalizeRentFields("min");render();$("#results").scrollIntoView({behavior:"smooth",block:"start"});});
-    $("#reset").addEventListener("click",()=>{$("#source").value=rentcast.length?"rentcast":"historical";$("#area").value="";$("#minRent").value="2250";$("#rent").value="3000";$("#beds").value="all";$("#sort").value="new";changeMode="all";render();});
+    $("#reset").addEventListener("click",()=>{$("#source").value=(rentcast.length||manual.length)?"rentcast":"historical";$("#area").value="";$("#minRent").value="2250";$("#rent").value="3000";$("#beds").value="all";$("#sort").value="new";changeMode="all";render();});
     for(const [id,kind] of [["change-all","all"],["change-new","newly_seen"],["change-drops","price_drop"]]){
       $("#"+id).addEventListener("click",()=>{changeMode=kind;render();});
     }
@@ -795,18 +795,21 @@
       else dialog.removeAttribute("open");
     });
     async function getJSON(path){try{const r=await fetch(path,{cache:"no-store"});return r.ok?await r.json():null;}catch(e){console.warn("Unable to load data",path,e);return null;}}
-    Promise.all([getJSON("./data/listings.json"),getJSON("./data/rentcast.json"),getJSON("./data/approved-photos.json")]).then(([h,r,p])=>{
+    Promise.all([getJSON("./data/listings.json"),getJSON("./data/rentcast.json"),getJSON("./data/manual.json"),getJSON("./data/approved-photos.json")]).then(([h,r,m,p])=>{
       approvedPhotos=p&&p.photos&&typeof p.photos==="object"&&!Array.isArray(p.photos)?p.photos:{};
       historical=Array.isArray(h?.listings)?h.listings.filter(southOfGWBridge).map(x=>({...x,source_kind:"historical"})):[];
       rentcast=Array.isArray(r?.listings)?r.listings.filter(southOfGWBridge).map(x=>({...x,source_kind:"rentcast"})):[];
-      listings=[...rentcast,...historical];
+      // Permanent personal selections are committed independently and are not
+      // overwritten by the scheduled RentCast or FirstMover update scripts.
+      manual=Array.isArray(m?.listings)?m.listings.filter(x=>x?.source_kind==="manual"&&AREAS.includes(x.area)&&southOfGWBridge(x)&&!roomRental(x)&&Number.isFinite(Number(x.rent))&&Number(x.rent)>=2250&&Number(x.rent)<=3000&&(x.bedrooms===0||x.bedrooms===1)&&safeUrl(x.url)).map(x=>({...x,source_kind:"manual"})):[];
+      listings=[...rentcast,...manual,...historical];
       const allowedIds=new Set(listings.filter(x=>southOfGWBridge(x)&&!roomRental(x)&&Number(x.rent)>=2250&&Number(x.rent)<=3000).map(x=>String(x.id)));
       const validCompare=compareIds.filter(id=>allowedIds.has(id)&&!hiddenIds.has(id));
       if(validCompare.length!==compareIds.length){compareIds=validCompare;persistCompare();}
       const allowedFavorites=[...favorites].filter(id=>allowedIds.has(id));
       if(allowedFavorites.length!==favorites.size){favorites=new Set(allowedFavorites);try{localStorage.setItem("nyc-apartment-favorites",JSON.stringify([...favorites]));}catch(e){console.warn("Unable to prune out-of-area favorites",e);}}
       feedMetadata={rcChecked:r?.checked_at_utc||"",fmMonth:h?.data_month||"",comparison:r?.comparison||null,rcResponseLimit:Boolean(r?.search_response_limit_hit||Object.values(r?.query_counts||{}).some(v=>Number(v?.returned)>=500))};
-      $("#source").value=rentcast.length?"rentcast":"historical";render();
+      $("#source").value=(rentcast.length||manual.length)?"rentcast":"historical";render();
     }).catch(e=>{console.error("Could not display listings",e);count.textContent="Listings unavailable";summary.textContent="Please check the refresh workflow.";});
   </script>
 </body>
