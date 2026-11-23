@@ -117,5 +117,20 @@ for(const required of ['id="filters"','id="source"','id="area"','id="minRent"',
   assert.ok(html.includes(required),"Actual search filter must remain: "+required);
 }
 assert.ok(html.includes('href="./market-insights.html"'),"Keep primary navigation intact");
+// Personal apartment hiding must not accidentally suppress all fresh listings.
+for(const key of [
+  'id="hidden-listings"','id="hidden-total"','id="restore-all"',
+  'const hiddenStorageKey="nyc-apartment-hidden-v1"',
+  'let hiddenIds=new Set()','function toggleHide(id)',
+  'function restoreAllHidden()','function setResultsMode(mode)',
+  'hiddenIds.has(String(x.id))','const visible=all.filter',
+  'viewMode==="hidden"?hidden:viewMode==="saved"?saved:visible',
+  'localStorage.setItem(hiddenStorageKey',
+  'function buildMapPreview(x)','hideMap.addEventListener("click",()=>toggleHide(x.id))',
+  'hideButton.addEventListener("click",()=>toggleHide(x.id))',
+  'function refreshPins(list)','const validCompare=compareIds.filter(id=>allowedIds.has(id)&&!hiddenIds.has(id))',
+  'Save to favorites','id="saved"'
+])assert.ok(html.includes(key),"Hide/Restore feature missing: "+key);
+assert.ok(!html.includes('showSaved=false'),"Only one results-mode state should exist");
 assert.ok(!html.includes("Fort Lee"), "Removed search area must not appear");
 console.log("Passed JS syntax and room-rental UI guard checks.");
